@@ -4,125 +4,70 @@ function formatDate(value) {
 
 export default function PanasResultsTable({ entries = [], loading = false }) {
   return (
-    <section style={{ marginTop: "2rem" }}>
-      <h2>Previous PANAS Assessments</h2>
+    <section>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Previous PANAS Assessments
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Review your recent entries and summary scores.
+        </p>
+      </div>
 
       {loading ? (
-        <p>Loading PANAS results...</p>
+        <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          Loading PANAS results...
+        </div>
       ) : entries.length === 0 ? (
-        <p>No PANAS results yet.</p>
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-600">
+          No PANAS results yet.
+        </div>
       ) : (
-        <table
-          style={{
-            borderCollapse: "collapse",
-            width: "100%",
-            maxWidth: "1000px",
-            marginTop: "1rem",
-          }}
-        >
-          <thead>
-            <tr>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "0.5rem",
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                Created
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "0.5rem",
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                Timeframe
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "0.5rem",
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                Notes
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "0.5rem",
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                Positive Score
-              </th>
-              <th
-                style={{
-                  textAlign: "left",
-                  padding: "0.5rem",
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                Negative Score
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {entries.map((entry) => (
-              <tr key={entry.id}>
-                <td
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    verticalAlign: "top",
-                  }}
-                >
-                  {formatDate(entry.created_at)}
-                </td>
-                <td
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    verticalAlign: "top",
-                  }}
-                >
-                  {entry.timeframe || "-"}
-                </td>
-                <td
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    verticalAlign: "top",
-                    maxWidth: "280px",
-                  }}
-                >
-                  {entry.notes || "-"}
-                </td>
-                <td
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    verticalAlign: "top",
-                  }}
-                >
-                  {entry.positive_score}
-                </td>
-                <td
-                  style={{
-                    padding: "0.5rem",
-                    borderBottom: "1px solid #eee",
-                    verticalAlign: "top",
-                  }}
-                >
-                  {entry.negative_score}
-                </td>
+        <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+          <table className="min-w-full border-collapse text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Created
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Timeframe
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Notes
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Positive Score
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Negative Score
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="align-top">
+                  <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {formatDate(entry.created_at)}
+                  </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.timeframe || "-"}
+                  </td>
+                  <td className="max-w-[280px] border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.notes || "-"}
+                  </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.positive_score}
+                  </td>
+                  <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.negative_score}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   )

@@ -59,8 +59,8 @@ export default function AuthForm() {
   }
 
   return (
-    <div style={{ maxWidth: "420px" }}>
-      <div style={{ marginBottom: "1rem" }}>
+    <div className="w-full">
+      <div className="mb-5 grid grid-cols-2 rounded-lg bg-gray-100 p-1">
         <button
           type="button"
           onClick={() => {
@@ -68,11 +68,11 @@ export default function AuthForm() {
             setError("")
             setMessage("")
           }}
-          style={{
-            marginRight: "0.5rem",
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-          }}
+          className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+            mode === "signin"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
         >
           Sign In
         </button>
@@ -84,46 +84,55 @@ export default function AuthForm() {
             setError("")
             setMessage("")
           }}
-          style={{
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-          }}
+          className={`rounded-md px-3 py-2 text-sm font-medium transition ${
+            mode === "signup"
+              ? "bg-white text-gray-900 shadow-sm"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
         >
           Sign Up
         </button>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "0.75rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="email"
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+          >
             Email
           </label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            style={{ width: "100%", padding: "0.5rem" }}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
           />
         </div>
 
-        <div style={{ marginBottom: "0.75rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
+        <div>
+          <label
+            htmlFor="password"
+            className="mb-1.5 block text-sm font-medium text-gray-700"
+          >
             Password
           </label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
-            style={{ width: "100%", padding: "0.5rem" }}
+            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
           />
         </div>
 
         <button
           type="submit"
           disabled={loading}
-          style={{ padding: "0.6rem 1rem", cursor: "pointer" }}
+          className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading
             ? "Working..."
@@ -134,10 +143,16 @@ export default function AuthForm() {
       </form>
 
       {message && (
-        <p style={{ color: "green", marginTop: "1rem" }}>{message}</p>
+        <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+          {message}
+        </div>
       )}
 
-      {error && <p style={{ color: "red", marginTop: "1rem" }}>{error}</p>}
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
     </div>
   )
 }
