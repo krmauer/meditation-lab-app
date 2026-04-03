@@ -17,12 +17,14 @@ export default function DashboardPage() {
 
     const { data, error } = await supabase
       .from("panas_entries")
-      .select("id, created_at, timeframe, notes, positive_score, negative_score")
+      .select(
+        "id, created_at, timeframe, positive_notes, negative_notes, positive_score, negative_score"
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("Error loading PANAS entries:", error)
+      console.error("Error loading I-PANAS-SF entries:", error)
       setEntries([])
       setResultsLoading(false)
       return
@@ -75,7 +77,7 @@ export default function DashboardPage() {
                 Dashboard
               </h1>
               <p className="mt-1 text-sm text-gray-500">
-                Record a PANAS entry and review your previous assessments.
+                Record an I-PANAS-SF entry and review your previous assessments.
               </p>
               {email && (
                 <p className="mt-2 text-sm text-gray-600">

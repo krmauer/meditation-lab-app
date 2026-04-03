@@ -7,7 +7,7 @@ export default function PanasResultsTable({ entries = [], loading = false }) {
     <section>
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-gray-900">
-          Previous PANAS Assessments
+          Previous I-PANAS-SF Assessments
         </h2>
         <p className="mt-1 text-sm text-gray-500">
           Review your recent entries and summary scores.
@@ -16,11 +16,11 @@ export default function PanasResultsTable({ entries = [], loading = false }) {
 
       {loading ? (
         <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
-          Loading PANAS results...
+          Loading I-PANAS-SF results...
         </div>
       ) : entries.length === 0 ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-          No PANAS results yet.
+          No I-PANAS-SF results yet.
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -34,13 +34,16 @@ export default function PanasResultsTable({ entries = [], loading = false }) {
                   Timeframe
                 </th>
                 <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
-                  Notes
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
                   Positive Score
                 </th>
                 <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
                   Negative Score
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Positive Notes
+                </th>
+                <th className="border-b border-gray-200 px-4 py-3 text-left font-medium text-gray-700">
+                  Negative Notes
                 </th>
               </tr>
             </thead>
@@ -54,14 +57,17 @@ export default function PanasResultsTable({ entries = [], loading = false }) {
                   <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
                     {entry.timeframe || "-"}
                   </td>
-                  <td className="max-w-[280px] border-b border-gray-100 px-4 py-3 text-gray-700">
-                    {entry.notes || "-"}
-                  </td>
                   <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
                     {entry.positive_score}
                   </td>
                   <td className="border-b border-gray-100 px-4 py-3 text-gray-700">
                     {entry.negative_score}
+                  </td>
+                  <td className="max-w-[280px] border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.positive_notes || "-"}
+                  </td>
+                  <td className="max-w-[280px] border-b border-gray-100 px-4 py-3 text-gray-700">
+                    {entry.negative_notes || "-"}
                   </td>
                 </tr>
               ))}

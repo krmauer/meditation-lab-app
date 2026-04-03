@@ -3,28 +3,23 @@
 import { useMemo, useState } from "react"
 import { supabase } from "../lib/supabase"
 
-const PANAS_ITEMS = [
-  { key: "interested", label: "Interested" },
-  { key: "distressed", label: "Distressed" },
-  { key: "excited", label: "Excited" },
-  { key: "upset", label: "Upset" },
-  { key: "strong", label: "Strong" },
-  { key: "guilty", label: "Guilty" },
-  { key: "scared", label: "Scared" },
-  { key: "hostile", label: "Hostile" },
-  { key: "enthusiastic", label: "Enthusiastic" },
-  { key: "proud", label: "Proud" },
-  { key: "irritable", label: "Irritable" },
-  { key: "alert", label: "Alert" },
-  { key: "ashamed", label: "Ashamed" },
-  { key: "inspired", label: "Inspired" },
-  { key: "nervous", label: "Nervous" },
-  { key: "determined", label: "Determined" },
-  { key: "attentive", label: "Attentive" },
-  { key: "jittery", label: "Jittery" },
+const POSITIVE_ITEMS = [
   { key: "active", label: "Active" },
-  { key: "afraid", label: "Afraid" },
+  { key: "alert", label: "Alert" },
+  { key: "attentive", label: "Attentive" },
+  { key: "determined", label: "Determined" },
+  { key: "inspired", label: "Inspired" },
 ]
+
+const NEGATIVE_ITEMS = [
+  { key: "afraid", label: "Afraid" },
+  { key: "ashamed", label: "Ashamed" },
+  { key: "hostile", label: "Hostile" },
+  { key: "nervous", label: "Nervous" },
+  { key: "upset", label: "Upset" },
+]
+
+const PANAS_ITEMS = [...POSITIVE_ITEMS, ...NEGATIVE_ITEMS]
 
 const INITIAL_SCORES = PANAS_ITEMS.reduce((acc, item) => {
   acc[item.key] = 1
@@ -62,17 +57,38 @@ function RatingRow({ label, value, onChange }) {
   )
 }
 
+function NotesCard({ id, label, value, onChange, placeholder }) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+      <label
+        htmlFor={id}
+        className="mb-3 block text-sm font-medium text-gray-900"
+      >
+        {label}
+      </label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={4}
+        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
+      />
+    </div>
+  )
+}
+
 export default function PanasForm({ onSuccess }) {
   const [timeframe, setTimeframe] = useState("right_now")
-  const [notes, setNotes] = useState("")
+  const [positiveNotes, setPositiveNotes] = useState("")
+  const [negativeNotes, setNegativeNotes] = useState("")
   const [scores, setScores] = useState(INITIAL_SCORES)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [message, setMessage] = useState("")
 
   const itemsByColumn = useMemo(() => {
-    const midpoint = Math.ceil(PANAS_ITEMS.length / 2)
-    return [PANAS_ITEMS.slice(0, midpoint), PANAS_ITEMS.slice(midpoint)]
+    return [POSITIVE_ITEMS, NEGATIVE_ITEMS]
   }, [])
 
   function updateScore(key, value) {
@@ -98,7 +114,7 @@ export default function PanasForm({ onSuccess }) {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      setError("You must be logged in to save a PANAS assessment.")
+      setError("You must be logged in to save an I-PANAS-SF assessment.")
       setLoading(false)
       return
     }
@@ -106,7 +122,8 @@ export default function PanasForm({ onSuccess }) {
     const payload = {
       user_id: user.id,
       timeframe,
-      notes: notes.trim() || null,
+      positive_notes: positiveNotes.trim() || null,
+      negative_notes: negativeNotes.trim() || null,
       ...scores,
     }
 
@@ -120,9 +137,10 @@ export default function PanasForm({ onSuccess }) {
       return
     }
 
-    setMessage("PANAS assessment saved.")
+    setMessage("I-PANAS-SF assessment saved.")
     setTimeframe("right_now")
-    setNotes("")
+    setPositiveNotes("")
+    setNegativeNotes("")
     setScores(INITIAL_SCORES)
     setLoading(false)
 
@@ -135,7 +153,7 @@ export default function PanasForm({ onSuccess }) {
     <section>
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-gray-900">
-          Complete PANAS Assessment
+          Complete I-PANAS-SF Assessment
         </h2>
         <p className="mt-1 text-sm text-gray-500">
           Rate each feeling from 1 to 5.
@@ -167,36 +185,44 @@ export default function PanasForm({ onSuccess }) {
           </select>
         </div>
 
-        <div>
-          <label
-            htmlFor="notes"
-            className="mb-1.5 block text-sm font-medium text-gray-700"
-          >
-            Notes
-          </label>
-          <textarea
-            id="notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional notes"
-            rows={4}
-            className="w-full max-w-2xl rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-gray-400 focus:ring-2 focus:ring-gray-200"
-          />
-        </div>
-
         <div className="grid gap-4 lg:grid-cols-2 lg:gap-6">
-          {itemsByColumn.map((column, columnIndex) => (
-            <div key={columnIndex} className="space-y-4">
-              {column.map((item) => (
-                <RatingRow
-                  key={item.key}
-                  label={item.label}
-                  value={scores[item.key]}
-                  onChange={(value) => updateScore(item.key, value)}
-                />
-              ))}
-            </div>
-          ))}
+          <div className="space-y-4">
+            {itemsByColumn[0].map((item) => (
+              <RatingRow
+                key={item.key}
+                label={item.label}
+                value={scores[item.key]}
+                onChange={(value) => updateScore(item.key, value)}
+              />
+            ))}
+
+            <NotesCard
+              id="positiveNotes"
+              label="Positive Notes"
+              value={positiveNotes}
+              onChange={setPositiveNotes}
+              placeholder="Optional notes about positive emotions, events, or experiences"
+            />
+          </div>
+
+          <div className="space-y-4">
+            {itemsByColumn[1].map((item) => (
+              <RatingRow
+                key={item.key}
+                label={item.label}
+                value={scores[item.key]}
+                onChange={(value) => updateScore(item.key, value)}
+              />
+            ))}
+
+            <NotesCard
+              id="negativeNotes"
+              label="Negative Notes"
+              value={negativeNotes}
+              onChange={setNegativeNotes}
+              placeholder="Optional notes about negative emotions, events, or experiences"
+            />
+          </div>
         </div>
 
         <div>
@@ -205,7 +231,7 @@ export default function PanasForm({ onSuccess }) {
             disabled={loading}
             className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Saving..." : "Save PANAS Assessment"}
+            {loading ? "Saving..." : "Save I-PANAS-SF Assessment"}
           </button>
         </div>
       </form>
