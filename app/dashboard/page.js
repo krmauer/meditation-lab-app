@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import PanasForm from "../../components/PanasForm"
 import PanasResultsTable from "../../components/PanasResultsTable"
+import PanasChart from "../../components/PanasChart"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -99,6 +100,10 @@ export default function DashboardPage() {
         </header>
 
         <div className="space-y-6">
+          <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
+            <PanasChart entries={entries} loading={resultsLoading} />
+          </section>
+
           <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
             <PanasForm onSuccess={handleFormSuccess} />
           </section>
