@@ -19,7 +19,7 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("panas_entries")
       .select(
-        "id, created_at, timeframe, positive_notes, negative_notes, positive_score, negative_score"
+        "id, created_at, timeframe, positive_notes, negative_notes, positive_score, negative_score, positive_avg, negative_avg"
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })

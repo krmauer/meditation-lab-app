@@ -6,6 +6,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -13,11 +14,19 @@ import {
   YAxis,
 } from "recharts"
 
+function PositiveDot({ cx, cy, value }) {
+  const color = value < 2.5 ? "#fda4af" : value <= 4.0 ? "#fde047" : "#86efac"
+  return <circle cx={cx} cy={cy} r={4} fill={color} stroke="#00000033" strokeWidth={1} />
+}
+
+function NegativeDot({ cx, cy, value }) {
+  const color = value < 1.5 ? "#86efac" : value <= 2.5 ? "#fde047" : "#fda4af"
+  return <circle cx={cx} cy={cy} r={4} fill={color} stroke="#00000033" strokeWidth={1} />
+}
+
 const VIEW_OPTIONS = [
-  { value: "both", label: "Both positive & negative" },
-  { value: "positive", label: "Positive only" },
-  { value: "negative", label: "Negative only" },
-  { value: "average", label: "Average of both" },
+  { value: "positive", label: "Positive affect" },
+  { value: "negative", label: "Negative affect" },
 ]
 
 function computeAvgs(chartData) {
@@ -42,6 +51,7 @@ function buildChartData(entries) {
   const dayMap = new Map()
 
   for (const entry of entries) {
+    console.log(entry)
     const date = new Date(entry.created_at)
     const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 
@@ -50,8 +60,8 @@ function buildChartData(entries) {
     }
 
     const bucket = dayMap.get(dayKey)
-    bucket.positiveSum += entry.positive_score
-    bucket.negativeSum += entry.negative_score
+    bucket.positiveSum += entry.positive_avg ?? 0
+    bucket.negativeSum += entry.negative_avg ?? 0
     bucket.count += 1
   }
 
@@ -74,8 +84,23 @@ function buildChartData(entries) {
     })
 }
 
+function buildWeekDividers(chartData) {
+  return chartData
+    .filter((d) => {
+      const parsed = new Date(d.date + " 2000")
+      return parsed.getDay() === 1
+    })
+    .map((d) => d.date)
+}
+
+function buildTickValues(chartData) {
+  return chartData
+    .filter((_, i) => i % 7 === 0)
+    .map((d) => d.date)
+}
+
 export default function PanasChart({ entries = [], loading = false }) {
-  const [view, setView] = useState("both")
+  const [view, setView] = useState("positive")
 
   if (loading) {
     return (
@@ -115,6 +140,8 @@ export default function PanasChart({ entries = [], loading = false }) {
 
   const chartData = buildChartData(entries)
   const avgs = computeAvgs(chartData)
+  const weekDividers = buildWeekDividers(chartData)
+  const tickValues = buildTickValues(chartData)
 
   return (
     <section>
@@ -148,12 +175,14 @@ export default function PanasChart({ entries = [], loading = false }) {
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
           <XAxis
             dataKey="date"
+            ticks={tickValues}
             tick={{ fontSize: 12, fill: "#6b7280" }}
             tickLine={false}
             axisLine={{ stroke: "#e5e7eb" }}
           />
           <YAxis
-            domain={[5, 25]}
+            domain={[1, 5]}
+            ticks={[1, 2, 3, 4, 5]}
             tick={{ fontSize: 12, fill: "#6b7280" }}
             tickLine={false}
             axisLine={false}
@@ -167,18 +196,32 @@ export default function PanasChart({ entries = [], loading = false }) {
             }}
           />
           <Legend wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }} />
-          {(view === "both" || view === "positive") && (
+          {view === "positive" && (
+            <>
+              <ReferenceArea y1={1} y2={2.5} fill="#ffe4e6" fillOpacity={0.4} />
+              <ReferenceArea y1={2.5} y2={4.0} fill="#fef9c3" fillOpacity={0.4} />
+              <ReferenceArea y1={4.0} y2={5} fill="#dcfce7" fillOpacity={0.4} />
+            </>
+          )}
+          {view === "negative" && (
+            <>
+              <ReferenceArea y1={1} y2={1.5} fill="#dcfce7" fillOpacity={0.4} />
+              <ReferenceArea y1={1.5} y2={2.5} fill="#fef9c3" fillOpacity={0.4} />
+              <ReferenceArea y1={2.5} y2={5} fill="#ffe4e6" fillOpacity={0.4} />
+            </>
+          )}
+          {view === "positive" && (
             <Line
               type="monotone"
               dataKey="positive"
               name="Positive Score"
-              stroke="#16a34a"
+              stroke="#000000"
               strokeWidth={2}
-              dot={{ r: 4, fill: "#16a34a" }}
+              dot={<PositiveDot />}
               activeDot={{ r: 6 }}
             />
           )}
-          {(view === "both" || view === "positive") && (
+          {view === "positive" && (
             <ReferenceLine
               y={avgs.positive}
               stroke="#2563eb"
@@ -187,18 +230,18 @@ export default function PanasChart({ entries = [], loading = false }) {
               label={{ value: `Avg: ${avgs.positive}`, position: "insideTopRight", fontSize: 11, fill: "#2563eb" }}
             />
           )}
-          {(view === "both" || view === "negative") && (
+          {view === "negative" && (
             <Line
               type="monotone"
               dataKey="negative"
               name="Negative Score"
-              stroke="#ea580c"
+              stroke="#000000"
               strokeWidth={2}
-              dot={{ r: 4, fill: "#ea580c" }}
+              dot={<NegativeDot />}
               activeDot={{ r: 6 }}
             />
           )}
-          {(view === "both" || view === "negative") && (
+          {view === "negative" && (
             <ReferenceLine
               y={avgs.negative}
               stroke="#be185d"
@@ -207,26 +250,15 @@ export default function PanasChart({ entries = [], loading = false }) {
               label={{ value: `Avg: ${avgs.negative}`, position: "insideTopRight", fontSize: 11, fill: "#be185d" }}
             />
           )}
-          {view === "average" && (
-            <Line
-              type="monotone"
-              dataKey="average"
-              name="Average Score"
-              stroke="#6366f1"
-              strokeWidth={2}
-              dot={{ r: 4, fill: "#6366f1" }}
-              activeDot={{ r: 6 }}
-            />
-          )}
-          {view === "average" && (
+          {weekDividers.map((dateLabel) => (
             <ReferenceLine
-              y={avgs.average}
-              stroke="#0d9488"
+              key={dateLabel}
+              x={dateLabel}
+              stroke="#d1d5db"
+              strokeWidth={1}
               strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{ value: `Avg: ${avgs.average}`, position: "insideTopRight", fontSize: 11, fill: "#0d9488" }}
             />
-          )}
+          ))}
         </LineChart>
       </ResponsiveContainer>
     </section>
