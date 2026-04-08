@@ -26,30 +26,45 @@ const INITIAL_SCORES = PANAS_ITEMS.reduce((acc, item) => {
   return acc
 }, {})
 
+const SCALE_LABELS = [
+  "Slightly / None",
+  "A little",
+  "Moderately",
+  "Quite a bit",
+  "Extremely",
+]
+
 function RatingRow({ label, value, onChange }) {
   return (
     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-      <div className="mb-3">
+      <div className="mb-1">
         <p className="text-sm font-medium text-gray-900">{label}</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {[1, 2, 3, 4, 5].map((option) => {
+        {[1, 2, 3, 4, 5].map((option, index) => {
           const active = value === option
 
           return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(option)}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-medium transition ${
-                active
-                  ? "border-gray-900 bg-gray-900 text-white"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {option}
-            </button>
+            <div key={option} className="flex flex-col items-center gap-1" style={{ width: "4rem" }}>
+              <span
+                className="text-center text-[10px] leading-tight text-gray-400 whitespace-pre-line flex items-end justify-center"
+                style={{ height: "2.5rem" }}
+              >
+                {SCALE_LABELS[index]}
+              </span>
+              <button
+                type="button"
+                onClick={() => onChange(option)}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg border text-sm font-medium transition ${
+                  active
+                    ? "border-gray-900 bg-gray-900 text-white"
+                    : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                {option}
+              </button>
+            </div>
           )
         })}
       </div>
@@ -157,9 +172,6 @@ export default function PanasForm({ onSuccess }) {
         </h2>
         <p className="mt-1 text-sm text-gray-500">
           Rate each feeling from 1 to 5.
-        </p>
-        <p className="mt-1 text-sm text-gray-500">
-          1 = very slightly or not at all, 5 = extremely
         </p>
       </div>
 
