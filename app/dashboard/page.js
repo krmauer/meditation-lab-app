@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
-import PanasForm from "../../components/PanasForm"
 import PanasResultsTable from "../../components/PanasResultsTable"
 import PanasChart from "../../components/PanasChart"
 
@@ -58,16 +57,6 @@ export default function DashboardPage() {
     router.push("/login")
   }
 
-  async function handleFormSuccess() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) return
-
-    await loadEntries(user.id)
-  }
-
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
@@ -88,7 +77,13 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => router.push("/new-entry")}
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+              >
+                New Entry
+              </button>
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
@@ -102,10 +97,6 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
             <PanasChart entries={entries} loading={resultsLoading} />
-          </section>
-
-          <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-            <PanasForm onSuccess={handleFormSuccess} />
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">

@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 
 const POSITIVE_ITEMS = [
@@ -94,9 +95,9 @@ function NotesCard({ id, label, value, onChange, placeholder }) {
 }
 
 export default function PanasForm({ onSuccess }) {
+  const router = useRouter()
   const [timeframe, setTimeframe] = useState("right_now")
-  const [positiveNotes, setPositiveNotes] = useState("")
-  const [negativeNotes, setNegativeNotes] = useState("")
+  const [notes, setNotes] = useState("")
   const [scores, setScores] = useState(INITIAL_SCORES)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -137,8 +138,7 @@ export default function PanasForm({ onSuccess }) {
     const payload = {
       user_id: user.id,
       timeframe,
-      positive_notes: positiveNotes.trim() || null,
-      negative_notes: negativeNotes.trim() || null,
+      notes: notes.trim() || null,
       ...scores,
     }
 
@@ -152,16 +152,8 @@ export default function PanasForm({ onSuccess }) {
       return
     }
 
-    setMessage("I-PANAS-SF assessment saved.")
-    setTimeframe("right_now")
-    setPositiveNotes("")
-    setNegativeNotes("")
-    setScores(INITIAL_SCORES)
     setLoading(false)
-
-    if (onSuccess) {
-      onSuccess()
-    }
+    router.push("/dashboard")
   }
 
   return (
@@ -208,13 +200,6 @@ export default function PanasForm({ onSuccess }) {
               />
             ))}
 
-            <NotesCard
-              id="positiveNotes"
-              label="Positive Notes"
-              value={positiveNotes}
-              onChange={setPositiveNotes}
-              placeholder="Optional notes about positive emotions, events, or experiences"
-            />
           </div>
 
           <div className="space-y-4">
@@ -226,16 +211,16 @@ export default function PanasForm({ onSuccess }) {
                 onChange={(value) => updateScore(item.key, value)}
               />
             ))}
-
-            <NotesCard
-              id="negativeNotes"
-              label="Negative Notes"
-              value={negativeNotes}
-              onChange={setNegativeNotes}
-              placeholder="Optional notes about negative emotions, events, or experiences"
-            />
           </div>
         </div>
+
+        <NotesCard
+          id="notes"
+          label="Notes"
+          value={notes}
+          onChange={setNotes}
+          placeholder="Optional notes about your emotions, events, or experiences"
+        />
 
         <div>
           <button
@@ -243,7 +228,7 @@ export default function PanasForm({ onSuccess }) {
             disabled={loading}
             className="inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Saving..." : "Save I-PANAS-SF Assessment"}
+            {loading ? "Saving..." : "Save Entry"}
           </button>
         </div>
       </form>
