@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
-import PanasResultsTable from "../../components/PanasResultsTable"
 import PanasChart from "../../components/PanasChart"
 
 export default function DashboardPage() {
@@ -99,9 +98,6 @@ export default function DashboardPage() {
             <PanasChart entries={entries} loading={resultsLoading} />
           </section>
 
-          <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-            <PanasResultsTable entries={entries} loading={resultsLoading} />
-          </section>
         </div>
       </div>
     </main>
