@@ -4,12 +4,14 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import PanasChart from "../../components/PanasChart"
+import { filterEntriesByPeriod } from "../../lib/filterEntriesByPeriod"
 
 export default function DashboardPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [entries, setEntries] = useState([])
   const [resultsLoading, setResultsLoading] = useState(true)
+  const [selectedPeriod, setSelectedPeriod] = useState("this_week")
 
   const loadEntries = useCallback(async (userId) => {
     setResultsLoading(true)
@@ -56,6 +58,8 @@ export default function DashboardPage() {
     router.push("/login")
   }
 
+  const filteredEntries = filterEntriesByPeriod(entries, selectedPeriod)
+
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
@@ -95,7 +99,12 @@ export default function DashboardPage() {
 
         <div className="space-y-6">
           <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
-            <PanasChart entries={entries} loading={resultsLoading} />
+            <PanasChart
+              entries={filteredEntries}
+              loading={resultsLoading}
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+            />
           </section>
 
         </div>

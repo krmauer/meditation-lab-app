@@ -29,6 +29,18 @@ const VIEW_OPTIONS = [
   { value: "negative", label: "Negative affect" },
 ]
 
+const PERIOD_OPTIONS = [
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "this_week", label: "This Week" },
+  { value: "last_week", label: "Last Week" },
+  { value: "this_month", label: "This Month" },
+  { value: "last_month", label: "Last Month" },
+  { value: "this_year", label: "This Year" },
+  { value: "last_year", label: "Last Year" },
+  { value: "all_time", label: "All Time" },
+]
+
 function computeAvgs(chartData) {
   if (chartData.length === 0) return { positive: 0, negative: 0, average: 0 }
   const sum = chartData.reduce(
@@ -99,7 +111,7 @@ function buildTickValues(chartData) {
     .map((d) => d.date)
 }
 
-export default function PanasChart({ entries = [], loading = false }) {
+export default function PanasChart({ entries = [], loading = false, selectedPeriod = "this_week", onPeriodChange }) {
   const [view, setView] = useState("positive")
 
   if (loading) {
@@ -120,27 +132,10 @@ export default function PanasChart({ entries = [], loading = false }) {
     )
   }
 
-  if (entries.length === 0) {
-    return (
-      <section>
-        <div className="mb-5">
-          <h2 className="text-xl font-semibold text-gray-900">
-            PANAS Scores Over Time
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Daily average positive and negative affect scores.
-          </p>
-        </div>
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-          No data yet. Complete your first assessment to see the chart.
-        </div>
-      </section>
-    )
-  }
-
-  const chartData = buildChartData(entries)
+  const chartData = entries.length > 0 ? buildChartData(entries) : []
   const avgs = computeAvgs(chartData)
-  const weekDividers = buildWeekDividers(chartData)
+  const showWeekDividers = ["this_month", "last_month", "this_year", "last_year", "all_time"].includes(selectedPeriod)
+  const weekDividers = showWeekDividers ? buildWeekDividers(chartData) : []
   const tickValues = buildTickValues(chartData)
 
   return (
@@ -154,113 +149,132 @@ export default function PanasChart({ entries = [], loading = false }) {
             Daily average positive and negative affect scores.
           </p>
         </div>
-        <select
-          value={view}
-          onChange={(e) => setView(e.target.value)}
-          className="self-start rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-gray-400 focus:outline-none"
-        >
-          {VIEW_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2 self-start">
+          <select
+            value={selectedPeriod}
+            onChange={(e) => onPeriodChange(e.target.value)}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-gray-400 focus:outline-none"
+          >
+            {PERIOD_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={view}
+            onChange={(e) => setView(e.target.value)}
+            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-gray-400 focus:outline-none"
+          >
+            {VIEW_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 8, right: 24, left: 0, bottom: 0 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis
-            dataKey="date"
-            ticks={tickValues}
-            tick={{ fontSize: 12, fill: "#6b7280" }}
-            tickLine={false}
-            axisLine={{ stroke: "#e5e7eb" }}
-          />
-          <YAxis
-            domain={[1, 5]}
-            ticks={[1, 2, 3, 4, 5]}
-            tick={{ fontSize: 12, fill: "#6b7280" }}
-            tickLine={false}
-            axisLine={false}
-            width={28}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: "8px",
-              border: "1px solid #e5e7eb",
-              fontSize: "13px",
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }} />
-          {view === "positive" && (
-            <>
-              <ReferenceArea y1={1} y2={2.5} fill="#ffe4e6" fillOpacity={0.4} />
-              <ReferenceArea y1={2.5} y2={4.0} fill="#fef9c3" fillOpacity={0.4} />
-              <ReferenceArea y1={4.0} y2={5} fill="#dcfce7" fillOpacity={0.4} />
-            </>
-          )}
-          {view === "negative" && (
-            <>
-              <ReferenceArea y1={1} y2={1.5} fill="#dcfce7" fillOpacity={0.4} />
-              <ReferenceArea y1={1.5} y2={2.5} fill="#fef9c3" fillOpacity={0.4} />
-              <ReferenceArea y1={2.5} y2={5} fill="#ffe4e6" fillOpacity={0.4} />
-            </>
-          )}
-          {view === "positive" && (
-            <Line
-              type="monotone"
-              dataKey="positive"
-              name="Positive Score"
-              stroke="#000000"
-              strokeWidth={2}
-              dot={<PositiveDot />}
-              activeDot={{ r: 6 }}
+      {entries.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-sm text-gray-600">
+          No data for this period.
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 8, right: 24, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <XAxis
+              dataKey="date"
+              ticks={tickValues}
+              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tickLine={false}
+              axisLine={{ stroke: "#e5e7eb" }}
             />
-          )}
-          {view === "positive" && (
-            <ReferenceLine
-              y={avgs.positive}
-              stroke="#2563eb"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{ value: `Avg: ${avgs.positive}`, position: "insideTopRight", fontSize: 11, fill: "#2563eb" }}
+            <YAxis
+              domain={[1, 5]}
+              ticks={[1, 2, 3, 4, 5]}
+              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tickLine={false}
+              axisLine={false}
+              width={28}
             />
-          )}
-          {view === "negative" && (
-            <Line
-              type="monotone"
-              dataKey="negative"
-              name="Negative Score"
-              stroke="#000000"
-              strokeWidth={2}
-              dot={<NegativeDot />}
-              activeDot={{ r: 6 }}
+            <Tooltip
+              contentStyle={{
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+                fontSize: "13px",
+              }}
             />
-          )}
-          {view === "negative" && (
-            <ReferenceLine
-              y={avgs.negative}
-              stroke="#be185d"
-              strokeDasharray="4 4"
-              strokeWidth={1.5}
-              label={{ value: `Avg: ${avgs.negative}`, position: "insideTopRight", fontSize: 11, fill: "#be185d" }}
-            />
-          )}
-          {weekDividers.map((dateLabel) => (
-            <ReferenceLine
-              key={dateLabel}
-              x={dateLabel}
-              stroke="#d1d5db"
-              strokeWidth={1}
-              strokeDasharray="4 4"
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+            <Legend wrapperStyle={{ fontSize: "13px", paddingTop: "12px" }} />
+            {view === "positive" && (
+              <>
+                <ReferenceArea y1={1} y2={2.5} fill="#ffe4e6" fillOpacity={0.4} />
+                <ReferenceArea y1={2.5} y2={4.0} fill="#fef9c3" fillOpacity={0.4} />
+                <ReferenceArea y1={4.0} y2={5} fill="#dcfce7" fillOpacity={0.4} />
+              </>
+            )}
+            {view === "negative" && (
+              <>
+                <ReferenceArea y1={1} y2={1.5} fill="#dcfce7" fillOpacity={0.4} />
+                <ReferenceArea y1={1.5} y2={2.5} fill="#fef9c3" fillOpacity={0.4} />
+                <ReferenceArea y1={2.5} y2={5} fill="#ffe4e6" fillOpacity={0.4} />
+              </>
+            )}
+            {view === "positive" && (
+              <Line
+                type="monotone"
+                dataKey="positive"
+                name="Positive Score"
+                stroke="#000000"
+                strokeWidth={2}
+                dot={<PositiveDot />}
+                activeDot={{ r: 6 }}
+              />
+            )}
+            {view === "positive" && (
+              <ReferenceLine
+                y={avgs.positive}
+                stroke="#2563eb"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                label={{ value: `Avg: ${avgs.positive}`, position: "insideTopRight", fontSize: 11, fill: "#2563eb" }}
+              />
+            )}
+            {view === "negative" && (
+              <Line
+                type="monotone"
+                dataKey="negative"
+                name="Negative Score"
+                stroke="#000000"
+                strokeWidth={2}
+                dot={<NegativeDot />}
+                activeDot={{ r: 6 }}
+              />
+            )}
+            {view === "negative" && (
+              <ReferenceLine
+                y={avgs.negative}
+                stroke="#be185d"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                label={{ value: `Avg: ${avgs.negative}`, position: "insideTopRight", fontSize: 11, fill: "#be185d" }}
+              />
+            )}
+            {weekDividers.map((dateLabel) => (
+              <ReferenceLine
+                key={dateLabel}
+                x={dateLabel}
+                stroke="#d1d5db"
+                strokeWidth={1}
+                strokeDasharray="4 4"
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </section>
   )
 }
