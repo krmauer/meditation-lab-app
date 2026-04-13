@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import PanasChart from "../../components/PanasChart"
+import StrandProfile from "../../components/StrandProfile"
 import { filterEntriesByPeriod } from "../../lib/filterEntriesByPeriod"
 
 export default function DashboardPage() {
@@ -105,6 +106,10 @@ export default function DashboardPage() {
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}
             />
+          </section>
+
+          <section className="rounded-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
+            <StrandProfile entries={filteredEntries} />
           </section>
 
         </div>

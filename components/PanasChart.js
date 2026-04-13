@@ -63,7 +63,6 @@ function buildChartData(entries) {
   const dayMap = new Map()
 
   for (const entry of entries) {
-    console.log(entry)
     const date = new Date(entry.created_at)
     const dayKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 
