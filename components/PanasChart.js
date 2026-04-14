@@ -29,18 +29,6 @@ const VIEW_OPTIONS = [
   { value: "negative", label: "Negative affect" },
 ]
 
-const PERIOD_OPTIONS = [
-  { value: "today", label: "Today" },
-  { value: "yesterday", label: "Yesterday" },
-  { value: "this_week", label: "This Week" },
-  { value: "last_week", label: "Last Week" },
-  { value: "this_month", label: "This Month" },
-  { value: "last_month", label: "Last Month" },
-  { value: "this_year", label: "This Year" },
-  { value: "last_year", label: "Last Year" },
-  { value: "all_time", label: "All Time" },
-]
-
 function computeAvgs(chartData) {
   if (chartData.length === 0) return { positive: 0, negative: 0, average: 0 }
   const sum = chartData.reduce(
@@ -110,7 +98,7 @@ function buildTickValues(chartData) {
     .map((d) => d.date)
 }
 
-export default function PanasChart({ entries = [], loading = false, selectedPeriod = "this_week", onPeriodChange }) {
+export default function PanasChart({ entries = [], loading = false, selectedPeriod = "this_week" }) {
   const [view, setView] = useState("positive")
 
   if (loading) {
@@ -149,17 +137,6 @@ export default function PanasChart({ entries = [], loading = false, selectedPeri
           </p>
         </div>
         <div className="flex gap-2 self-start">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => onPeriodChange(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-gray-400 focus:outline-none"
-          >
-            {PERIOD_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
           <select
             value={view}
             onChange={(e) => setView(e.target.value)}
