@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase"
 import HeatmapCalendar from "../../components/HeatmapCalendar"
 import TopDayCard from "../../components/TopDayCard"
 import QuadrantModal from "../../components/QuadrantModal"
+import DayDetailPanel from "../../components/DayDetailPanel"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -13,6 +14,7 @@ export default function DashboardPage() {
   const [entries, setEntries] = useState([])
   const [resultsLoading, setResultsLoading] = useState(true)
   const [modalQuadrant, setModalQuadrant] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
   const [activeTab, setActiveTab] = useState("calendar")
 
   const today = new Date()
@@ -24,7 +26,7 @@ export default function DashboardPage() {
     const { data, error } = await supabase
       .from("panas_entries")
       .select(
-        "id, created_at, timeframe, notes, positive_notes, negative_notes, positive_score, negative_score, positive_avg, negative_avg"
+        "id, created_at, timeframe, notes, positive_score, negative_score, positive_avg, negative_avg, active, alert, attentive, determined, inspired, afraid, ashamed, hostile, nervous, upset"
       )
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
@@ -145,6 +147,7 @@ export default function DashboardPage() {
                 calendarMonth={calendarMonth}
                 onMonthChange={handleMonthChange}
                 onQuadrantClick={setModalQuadrant}
+                onDayClick={setSelectedDay}
               />
             )}
             {activeTab === "top" && (
@@ -158,6 +161,11 @@ export default function DashboardPage() {
         </div>
 
       </div>
+      <DayDetailPanel
+        dateKey={selectedDay}
+        entries={entries}
+        onClose={() => setSelectedDay(null)}
+      />
     </main>
   )
 }

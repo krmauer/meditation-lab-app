@@ -58,7 +58,7 @@ function buildCalendarMonth(year, month, dayMap) {
 }
 
 // ── Day cell ──────────────────────────────────────────────────────────
-function DayCell({ slot }) {
+function DayCell({ slot, onDayClick }) {
   const [hovered, setHovered] = useState(false)
   if (!slot) return <div className="aspect-square" />
   const { dayNumber, quadrant, pa, na, dateKey } = slot
@@ -71,12 +71,13 @@ function DayCell({ slot }) {
       onMouseLeave={() => setHovered(false)}
     >
       <div
-        className="flex h-full w-full cursor-default items-center justify-center rounded-sm text-xl font-semibold transition-opacity"
+        className={`flex h-full w-full items-center justify-center rounded-sm text-xl font-semibold transition-opacity ${hasData ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
         style={{
           background: hasData ? config.color : "#E5E5E3",
           color: hasData ? "#fff" : "#9CA3AF",
           opacity: hasData ? 1 : 0.5,
         }}
+        onClick={() => hasData && onDayClick(dateKey)}
       >
         {dayNumber}
       </div>
@@ -177,6 +178,7 @@ export default function HeatmapCalendar({
   calendarMonth,
   onMonthChange,
   onQuadrantClick,
+  onDayClick = () => {},
 }) {
   const dayMap = groupEntriesByDay(entries)
   const weeks  = buildCalendarMonth(calendarYear, calendarMonth, dayMap)
@@ -268,7 +270,7 @@ export default function HeatmapCalendar({
         {weeks.map((week, wi) => (
           <div key={wi} className="grid grid-cols-7 gap-1">
             {week.map((slot, di) => (
-              <DayCell key={di} slot={slot} />
+              <DayCell key={di} slot={slot} onDayClick={onDayClick} />
             ))}
           </div>
         ))}
