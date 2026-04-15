@@ -3,6 +3,13 @@
 import { Q_CONFIG } from "../lib/quadrantConfig"
 import { classifyDay } from "../lib/strandClassifier"
 
+const QUADRANT_PHRASES = {
+  Q1: "High energy and low friction.",
+  Q2: "High tension and low fuel.",
+  Q3: "High energy and high tension.",
+  Q4: "Low tension and low drive.",
+}
+
 const POSITIVE_ITEMS = [
   { key: "active",      label: "Active" },
   { key: "alert",       label: "Alert" },
@@ -117,6 +124,11 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
             >
               {qConfig ? qConfig.label : "No data"}
             </p>
+            {quadrant && (
+              <p className="mt-0.5 text-sm font-medium" style={{ color: qConfig.text }}>
+                {QUADRANT_PHRASES[quadrant]}
+              </p>
+            )}
             <h2 className="mt-0.5 text-lg font-semibold text-gray-900">
               {formatDateKey(dateKey)}
             </h2>

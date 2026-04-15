@@ -81,7 +81,8 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <QuadrantModal
-        quadrant={modalQuadrant}
+        quadrant={modalQuadrant?.quadrant}
+        entries={modalQuadrant?.entries ?? []}
         onClose={() => setModalQuadrant(null)}
       />
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
@@ -146,7 +147,7 @@ export default function DashboardPage() {
                 calendarYear={calendarYear}
                 calendarMonth={calendarMonth}
                 onMonthChange={handleMonthChange}
-                onQuadrantClick={setModalQuadrant}
+                onQuadrantClick={(quadrant) => setModalQuadrant({ quadrant, entries: filteredEntries })}
                 onDayClick={setSelectedDay}
               />
             )}
@@ -154,7 +155,6 @@ export default function DashboardPage() {
               <TopDayCard
                 entries={filteredEntries}
                 monthLabel={monthLabel}
-                onQuadrantClick={setModalQuadrant}
               />
             )}
           </div>
