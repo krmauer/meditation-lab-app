@@ -97,21 +97,23 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
   const qConfig = quadrant ? Q_CONFIG[quadrant] : null
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-40 bg-black/40"
-        onClick={onClose}
-      />
-
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 overflow-hidden"
+      style={{ background: "rgba(0,0,0,0.4)" }}
+      onClick={onClose}
+    >
       {/* Panel */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 mx-auto max-w-2xl rounded-t-2xl bg-white shadow-2xl"
-        style={{ maxHeight: "85vh", overflowY: "auto" }}
+        className="relative w-full max-w-2xl rounded-xl bg-white shadow-xl mb-12 flex flex-col"
+        style={{
+          borderTop: `4px solid ${qConfig ? qConfig.color : "#E5E7EB"}`,
+          maxHeight: "85vh",
+        }}
+        onClick={e => e.stopPropagation()}
       >
         {/* Header */}
         <div
-          className="sticky top-0 flex items-start justify-between rounded-t-2xl px-5 py-4"
+          className="flex items-start justify-between rounded-t-xl px-5 py-4"
           style={{
             background: qConfig ? qConfig.color : "#F9FAFB",
             borderBottom: `2px solid ${qConfig ? qConfig.border : "#E5E7EB"}`,
@@ -149,7 +151,7 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
         </div>
 
         {/* Body */}
-        <div className="px-5 py-4 space-y-6">
+        <div className="px-5 py-4 space-y-6 overflow-y-auto flex-1">
           {dayEntries.length === 0 ? (
             <p className="text-sm text-gray-500">No entries found for this day.</p>
           ) : (
@@ -207,6 +209,6 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
           )}
         </div>
       </div>
-    </>
+    </div>
   )
 }

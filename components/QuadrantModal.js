@@ -193,7 +193,7 @@ export default function QuadrantModal({ quadrant, entries = [], onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-12 overflow-hidden"
       style={{ background: "rgba(0,0,0,0.4)" }}
       onClick={onClose}
     >
