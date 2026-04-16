@@ -70,12 +70,9 @@ export default function DashboardPage() {
   const monthLabel = new Date(calendarYear, calendarMonth, 1)
     .toLocaleDateString("en-US", { month: "long", year: "numeric" })
 
-  const tabLabel = new Date(calendarYear, calendarMonth, 1)
-    .toLocaleDateString("en-US", { month: "long" })
-
   const tabs = [
-    { id: "calendar", label: tabLabel },
-    { id: "top",      label: "Top" },
+    { id: "calendar", label: "Review" },
+    { id: "top",      label: "Summary" },
   ]
 
   return (
@@ -87,59 +84,85 @@ export default function DashboardPage() {
       />
       <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
 
-        {/* Page header */}
-        <header className="mb-6 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Mood Dashboard</h1>
-              {email && (
-                <p className="mt-1 text-sm text-gray-500">
-                  Signed in as <span className="font-medium text-gray-700">{email}</span>
-                </p>
-              )}
+        {/* Unified card */}
+        <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+
+          {/* Zone 1: Toolbar — grey background */}
+          <div className="flex items-center gap-3 bg-gray-100 px-5 py-3">
+            <h1 className="text-lg font-semibold text-gray-900">Mood Dashboard</h1>
+            <div className="flex-1" />
+            <div className="flex gap-1">
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={[
+                      "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-500 hover:bg-gray-200 hover:text-gray-700",
+                    ].join(" ")}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
             </div>
-            <div className="flex gap-3">
+            <div className="flex-1" />
+            <div className="flex gap-2">
               <button
                 onClick={() => router.push("/new-entry")}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
+                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
               >
                 New Entry
               </button>
               <button
                 onClick={handleLogout}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
               >
                 Log out
               </button>
             </div>
           </div>
-        </header>
 
-        {/* Tabbed content card */}
-        <div>
-          {/* Tab row */}
-          <div className="flex items-end gap-1 px-1">
-            {tabs.map(tab => {
-              const isActive = activeTab === tab.id
-              return (
+          {/* Divider */}
+          <div className="border-t border-gray-200" />
+
+          {/* Zone 2: Month nav — white, centered */}
+          {activeTab === "calendar" && (
+            <>
+              <div className="flex items-center justify-start gap-3 bg-white px-5 py-3">
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={[
-                    "rounded-t-lg border border-b-0 px-5 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "border-gray-200 bg-white text-gray-900 shadow-sm"
-                      : "border-transparent bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700",
-                  ].join(" ")}
+                  onClick={() => {
+                    if (calendarMonth === 0) handleMonthChange(calendarYear - 1, 11)
+                    else handleMonthChange(calendarYear, calendarMonth - 1)
+                  }}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
                 >
-                  {tab.label}
+                  ‹
                 </button>
-              )
-            })}
-          </div>
+                <span className="min-w-[160px] text-center text-lg font-semibold text-gray-900">
+                  {monthLabel}
+                </span>
+                <button
+                  onClick={() => {
+                    if (calendarMonth === 11) handleMonthChange(calendarYear + 1, 0)
+                    else handleMonthChange(calendarYear, calendarMonth + 1)
+                  }}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
+                >
+                  ›
+                </button>
+              </div>
+              {/* Divider */}
+              <div className="border-t border-gray-200" />
+            </>
+          )}
 
-          {/* Panel */}
-          <div className="rounded-b-xl rounded-tr-xl border border-gray-200 bg-white px-5 py-5 shadow-sm">
+          {/* Zone 3: Content — white */}
+          <div className="bg-white px-5 py-5">
             {activeTab === "calendar" && (
               <HeatmapCalendar
                 entries={entries}
@@ -159,6 +182,7 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
         </div>
 
       </div>

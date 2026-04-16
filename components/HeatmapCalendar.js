@@ -101,6 +101,8 @@ function DayCell({ slot, onDayClick }) {
 // ── Stacked bar ───────────────────────────────────────────────────────
 function StackedBar({ pcts, onQuadrantClick }) {
   const ORDER = ["Q1", "Q2", "Q3", "Q4"].sort((a, b) => pcts[b] - pcts[a])
+  const visibleOrder = ORDER.filter(q => Math.round(pcts[q] * 100) > 0)
+  const lastQ = visibleOrder[visibleOrder.length - 1]
   return (
     <div>
       <div className="flex h-8 w-full overflow-hidden rounded-md" style={{ gap: "2px" }}>
@@ -108,6 +110,7 @@ function StackedBar({ pcts, onQuadrantClick }) {
           const c = Q_CONFIG[q]
           const pct = Math.round(pcts[q] * 100)
           if (pct === 0) return null
+          const isLast = q === lastQ
           return (
             <button
               key={q}
@@ -121,7 +124,7 @@ function StackedBar({ pcts, onQuadrantClick }) {
                 flexShrink: 0,
               }}
             >
-              {pct >= 12 && (
+              {(pct >= 12 || isLast) && (
                 <span className="text-xs font-medium" style={{ color: c.text }}>
                   {pct}%
                 </span>
@@ -183,21 +186,6 @@ export default function HeatmapCalendar({
   const dayMap = groupEntriesByDay(entries)
   const weeks  = buildCalendarMonth(calendarYear, calendarMonth, dayMap)
 
-  const monthLabel = new Date(calendarYear, calendarMonth, 1).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  })
-
-  function goBack() {
-    if (calendarMonth === 0) onMonthChange(calendarYear - 1, 11)
-    else onMonthChange(calendarYear, calendarMonth - 1)
-  }
-
-  function goForward() {
-    if (calendarMonth === 11) onMonthChange(calendarYear + 1, 0)
-    else onMonthChange(calendarYear, calendarMonth + 1)
-  }
-
   const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
   // Affective profile for the displayed month
@@ -209,40 +197,11 @@ export default function HeatmapCalendar({
 
   return (
     <section>
-      {/* Header row: title left, month navigation right */}
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">Mood Calendar</h2>
-          <p className="mt-0.5 text-sm text-gray-500">
-            Each day coloured by its affective quadrant.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={goBack}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
-          >
-            ‹
-          </button>
-          <span className="min-w-[130px] text-center text-sm font-medium text-gray-700">
-            {monthLabel}
-          </span>
-          <button
-            onClick={goForward}
-            className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50"
-          >
-            ›
-          </button>
-        </div>
-      </div>
 
       {/* Affective profile bar — summary of this month */}
+      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">Summary</h3>
       <div className="mb-6">
         <div className="mb-2 flex items-baseline justify-between">
-          <h3 className="text-sm font-semibold text-gray-700">Affective Profile</h3>
-          {!notEnoughData && (
-            <span className="text-xs text-gray-400">Based on {n} entries</span>
-          )}
         </div>
         {notEnoughData ? (
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
@@ -253,8 +212,8 @@ export default function HeatmapCalendar({
         )}
       </div>
 
-      {/* Divider */}
-      <div className="mb-5 border-t border-gray-100" />
+      {/* Daily entries subheader */}
+      <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">Daily Entries</h3>
 
       {/* Day-of-week column headers */}
       <div className="mb-1 grid grid-cols-7 gap-1">
