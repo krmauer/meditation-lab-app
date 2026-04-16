@@ -23,7 +23,7 @@ const NEGATIVE_ITEMS = [
 const PANAS_ITEMS = [...POSITIVE_ITEMS, ...NEGATIVE_ITEMS]
 
 const INITIAL_SCORES = PANAS_ITEMS.reduce((acc, item) => {
-  acc[item.key] = 1
+  acc[item.key] = null
   return acc
 }, {})
 
@@ -112,9 +112,7 @@ export default function PanasForm({ onSuccess }) {
 
     setScores((prev) => ({
       ...prev,
-      [key]: Number.isNaN(numericValue)
-        ? 1
-        : Math.min(5, Math.max(1, numericValue)),
+      [key]: Math.min(5, Math.max(1, numericValue)),
     }))
   }
 
