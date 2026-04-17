@@ -1,9 +1,32 @@
 "use client"
 
-import { getStrandProfile } from "../lib/strandClassifier"
+import { classifyDay } from "../lib/strandClassifier"
 import { Q_CONFIG } from "../lib/quadrantConfig"
 import { groupEntriesByDay, buildCalendarMonth } from "../lib/calendarUtils"
 import DayCell from "./shared/DayCell"
+
+// ── Quadrant percentage calculator ───────────────────────────────────
+// Takes the filtered entries for the visible month and returns the fraction
+// of entries falling in each quadrant. No minimum entry threshold — the bar
+// shows as soon as there is any data at all.
+function getQuadrantPcts(entries) {
+  const valid = entries.filter(
+    e => e.positive_avg != null && e.negative_avg != null
+  )
+  if (valid.length === 0) return null
+
+  const counts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }
+  for (const e of valid) {
+    counts[classifyDay(e.positive_avg, e.negative_avg)]++
+  }
+  const n = valid.length
+  return {
+    Q1: counts.Q1 / n,
+    Q2: counts.Q2 / n,
+    Q3: counts.Q3 / n,
+    Q4: counts.Q4 / n,
+  }
+}
 
 // ── Stacked bar ───────────────────────────────────────────────────────
 function StackedBar({ pcts, onQuadrantClick }) {
@@ -92,23 +115,17 @@ export default function HeatmapCalendar({
 }) {
   const dayMap = groupEntriesByDay(entries)
   const weeks  = buildCalendarMonth(calendarYear, calendarMonth, dayMap)
+  const pcts   = getQuadrantPcts(filteredEntries)
 
   const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-
-  const profileResult = getStrandProfile(filteredEntries)
-  const notEnoughData = profileResult.error === "not_enough_data"
-  const { pcts } = notEnoughData
-    ? { pcts: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 } }
-    : profileResult
 
   return (
     <section>
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">Summary</h3>
       <div className="mb-6">
-        <div className="mb-2 flex items-baseline justify-between" />
-        {notEnoughData ? (
+        {pcts === null ? (
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
-            At least 7 entries are needed to generate an affective profile.
+            No entries yet for this month.
           </div>
         ) : (
           <StackedBar pcts={pcts} onQuadrantClick={onQuadrantClick} />
