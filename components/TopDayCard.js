@@ -329,3 +329,242 @@ export function TopMonthCard({ entries = [] }) {
     </section>
   )
 }
+
+// ── Lowest day finder ─────────────────────────────────────────────────
+function findLowestDay(entries) {
+  const dayMap = groupEntriesByDay(entries)
+  const distressedDays = Object.entries(dayMap)
+    .filter(([, d]) => d.quadrant === "Q2")
+    .map(([dateKey, d]) => ({ dateKey, ...d }))
+  if (distressedDays.length === 0) return null
+  return distressedDays.reduce((worst, day) => {
+    return (day.pa - day.na) < (worst.pa - worst.na) ? day : worst
+  })
+}
+
+// ── Lowest week finder ────────────────────────────────────────────────
+function findLowestWeek(entries) {
+  const dayMap = groupEntriesByDay(entries)
+  const weekMap = {}
+
+  for (const [dateKey, { pa, na }] of Object.entries(dayMap)) {
+    const [year, month, day] = dateKey.split("-").map(Number)
+    const d = new Date(year, month - 1, day)
+    const sunday = new Date(d)
+    sunday.setDate(d.getDate() - d.getDay())
+    const weekKey = [
+      sunday.getFullYear(),
+      String(sunday.getMonth() + 1).padStart(2, "0"),
+      String(sunday.getDate()).padStart(2, "0"),
+    ].join("-")
+    if (!weekMap[weekKey]) weekMap[weekKey] = []
+    weekMap[weekKey].push({ pa, na })
+  }
+
+  let worst = null
+  for (const [weekKey, days] of Object.entries(weekMap)) {
+    const score = days.reduce((sum, d) => sum + (d.pa - d.na), 0) / days.length
+    if (!worst || score < worst.score) worst = { weekKey, score, days }
+  }
+  return worst
+}
+
+// ── Lowest month finder ───────────────────────────────────────────────
+function findLowestMonth(entries) {
+  const dayMap = groupEntriesByDay(entries)
+  const monthMap = {}
+
+  for (const [dateKey, { pa, na }] of Object.entries(dayMap)) {
+    const [year, month] = dateKey.split("-").map(Number)
+    const monthKey = `${year}-${String(month).padStart(2, "0")}`
+    if (!monthMap[monthKey]) monthMap[monthKey] = []
+    monthMap[monthKey].push({ pa, na })
+  }
+
+  let worst = null
+  for (const [monthKey, days] of Object.entries(monthMap)) {
+    const score = days.reduce((sum, d) => sum + (d.pa - d.na), 0) / days.length
+    if (!worst || score < worst.score) worst = { monthKey, score }
+  }
+  return worst
+}
+
+// ── LowestDayCard ─────────────────────────────────────────────────────
+export function LowestDayCard({ entries = [] }) {
+  const lowestDay = findLowestDay(entries)
+  const c = Q_CONFIG["Q2"]
+
+  return (
+    <section>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">Lowest Day</h2>
+        <p className="mt-0.5 text-sm text-gray-500">
+          Most distressed day, all time · by PA − NA score.
+        </p>
+      </div>
+
+      {!lowestDay ? (
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
+          <p className="text-sm font-medium text-gray-600">No distressed days on record.</p>
+          <p className="mt-1 text-sm text-gray-400">
+            A distressed day requires PA avg below 2.5 and NA avg ≥ 2.5. This is a good sign.
+          </p>
+        </div>
+      ) : (
+        <div className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${c.border}` }}>
+          <div
+            className="px-5 py-4"
+            style={{ background: c.color, borderBottom: `2px solid ${c.border}` }}
+          >
+            <p className="text-xs font-medium uppercase tracking-wide" style={{ color: c.text }}>{c.label}</p>
+            <p className="mt-0.5 text-sm font-medium" style={{ color: c.text }}>{QUADRANT_PHRASES["Q2"]}</p>
+            <p className="mt-1 text-lg font-bold text-gray-900">{formatDateKey(lowestDay.dateKey)}</p>
+            <p className="mt-1 text-sm" style={{ color: c.text, opacity: 0.8 }}>
+              PA avg: {lowestDay.pa} · NA avg: {lowestDay.na}
+            </p>
+          </div>
+          <div className="bg-white px-5 py-4 space-y-6">
+            {lowestDay.entries.map((entry, i) => (
+              <div key={entry.id}>
+                {lowestDay.entries.length > 1 && (
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    Entry {i + 1} · {new Date(entry.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  </p>
+                )}
+                {entry.timeframe && (
+                  <p className="mb-3 text-sm text-gray-500">
+                    Timeframe: <span className="font-medium text-gray-700">{TIMEFRAME_LABELS[entry.timeframe] ?? entry.timeframe}</span>
+                  </p>
+                )}
+                <div className="grid gap-x-6 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Positive</p>
+                    {POSITIVE_ITEMS.map((item) => (
+                      <ScoreRow key={item.key} label={item.label} value={entry[item.key] ?? 1} color="#16a34a" />
+                    ))}
+                  </div>
+                  <div className="mt-4 sm:mt-0">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Negative</p>
+                    {NEGATIVE_ITEMS.map((item) => (
+                      <ScoreRow key={item.key} label={item.label} value={entry[item.key] ?? 1} color="#dc2626" />
+                    ))}
+                  </div>
+                </div>
+                {entry.notes && (
+                  <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Notes</p>
+                    <p className="text-sm text-gray-700">{entry.notes}</p>
+                  </div>
+                )}
+                {i < lowestDay.entries.length - 1 && <div className="mt-6 border-t border-gray-100" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
+// ── LowestWeekCard ────────────────────────────────────────────────────
+export function LowestWeekCard({ entries = [] }) {
+  const lowestWeek = findLowestWeek(entries)
+
+  if (!lowestWeek) {
+    return (
+      <section>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Lowest week</h2>
+          <p className="mt-0.5 text-sm text-gray-500">Most difficult 7-day window, all time · Sun – Sat calendar weeks.</p>
+        </div>
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
+          <p className="text-sm font-medium text-gray-600">No data yet.</p>
+          <p className="mt-1 text-sm text-gray-400">Keep logging — your patterns will appear here.</p>
+        </div>
+      </section>
+    )
+  }
+
+  const dayMap = groupEntriesByDay(entries)
+  const cells = buildWeekCells(lowestWeek.weekKey, dayMap)
+  const [wy] = lowestWeek.weekKey.split("-").map(Number)
+  const rangeLabel = `${formatDateKey(cells[0].dateKey, true)} – ${formatDateKey(cells[6].dateKey, true)}, ${wy}`
+
+  return (
+    <section>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">Lowest week</h2>
+        <p className="mt-0.5 text-sm text-gray-500">Most difficult 7-day window, all time · {rangeLabel}</p>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+        <div className="mb-1 grid grid-cols-7 gap-1">
+          {DAY_LABELS.map(d => (
+            <div key={d} className="text-center text-[10px] font-medium uppercase tracking-wide text-gray-400">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((slot, i) => (
+            <DayCell key={i} slot={slot} onDayClick={() => {}} />
+          ))}
+        </div>
+        <CalendarLegend />
+      </div>
+    </section>
+  )
+}
+
+// ── LowestMonthCard ───────────────────────────────────────────────────
+export function LowestMonthCard({ entries = [] }) {
+  const lowestMonth = findLowestMonth(entries)
+
+  if (!lowestMonth) {
+    return (
+      <section>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Lowest month</h2>
+          <p className="mt-0.5 text-sm text-gray-500">Most difficult calendar month, all time.</p>
+        </div>
+        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
+          <p className="text-sm font-medium text-gray-600">No data yet.</p>
+          <p className="mt-1 text-sm text-gray-400">Keep logging — your patterns will appear here.</p>
+        </div>
+      </section>
+    )
+  }
+
+  const [yearNum, monthNum] = lowestMonth.monthKey.split("-").map(Number)
+  const monthLabel = new Date(yearNum, monthNum - 1, 1).toLocaleDateString("en-US", {
+    month: "long", year: "numeric",
+  })
+  const dayMap = groupEntriesByDay(entries)
+  const weeks = buildCalendarMonth(yearNum, monthNum - 1, dayMap)
+
+  return (
+    <section>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">Lowest month</h2>
+        <p className="mt-0.5 text-sm text-gray-500">Most difficult calendar month, all time · {monthLabel}</p>
+      </div>
+      <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+        <div className="mb-4">
+          <p className="text-sm font-medium text-gray-700">{monthLabel}</p>
+        </div>
+        <div className="mb-1 grid grid-cols-7 gap-1">
+          {DAY_LABELS.map(d => (
+            <div key={d} className="text-center text-[10px] font-medium uppercase tracking-wide text-gray-400">{d}</div>
+          ))}
+        </div>
+        <div className="space-y-1">
+          {weeks.map((week, wi) => (
+            <div key={wi} className="grid grid-cols-7 gap-1">
+              {week.map((slot, di) => (
+                <DayCell key={di} slot={slot} onDayClick={() => {}} />
+              ))}
+            </div>
+          ))}
+        </div>
+        <CalendarLegend />
+      </div>
+    </section>
+  )
+}
