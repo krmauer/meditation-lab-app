@@ -7,7 +7,7 @@ import ScoreRow from "./shared/ScoreRow"
 import DayCell from "./shared/DayCell"
 
 // ── Top day finder ────────────────────────────────────────────────────
-function findTopDay(entries) {
+export function findTopDay(entries) {
   const dayMap = groupEntriesByDay(entries)
   const flourishingDays = Object.entries(dayMap)
     .filter(([, d]) => d.quadrant === "Q1")
@@ -19,7 +19,7 @@ function findTopDay(entries) {
 }
 
 // ── Week helpers ──────────────────────────────────────────────────────
-function findTopWeek(entries) {
+export function findTopWeek(entries) {
   const dayMap = groupEntriesByDay(entries)
   const weekMap = {}
 
@@ -68,7 +68,7 @@ function buildWeekCells(weekKey, dayMap) {
 }
 
 // ── Month helpers ─────────────────────────────────────────────────────
-function findTopMonth(entries) {
+export function findTopMonth(entries) {
   const dayMap = groupEntriesByDay(entries)
   const monthMap = {}
 
@@ -157,13 +157,6 @@ export default function TopDayCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Top Day</h2>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Best flourishing day, all time · by PA − NA score.
-        </p>
-      </div>
-
       {!topDay ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No flourishing days on record yet.</p>
@@ -234,10 +227,6 @@ export function TopWeekCard({ entries = [] }) {
   if (!topWeek) {
     return (
       <section>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Top week</h2>
-          <p className="mt-0.5 text-sm text-gray-500">Best 7-day window, all time · Sun – Sat calendar weeks.</p>
-        </div>
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No data yet.</p>
           <p className="mt-1 text-sm text-gray-400">Keep logging — your best week will appear here.</p>
@@ -253,10 +242,6 @@ export function TopWeekCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Top week</h2>
-        <p className="mt-0.5 text-sm text-gray-500">Best 7-day window, all time · {rangeLabel}</p>
-      </div>
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
         <div className="mb-1 grid grid-cols-7 gap-1">
           {DAY_LABELS.map(d => (
@@ -281,10 +266,6 @@ export function TopMonthCard({ entries = [] }) {
   if (!topMonth) {
     return (
       <section>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Top month</h2>
-          <p className="mt-0.5 text-sm text-gray-500">Best calendar month, all time.</p>
-        </div>
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No data yet.</p>
           <p className="mt-1 text-sm text-gray-400">Keep logging — your best month will appear here.</p>
@@ -302,10 +283,6 @@ export function TopMonthCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Top month</h2>
-        <p className="mt-0.5 text-sm text-gray-500">Best calendar month, all time · {monthLabel}</p>
-      </div>
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
         <div className="mb-4">
           <p className="text-sm font-medium text-gray-700">{monthLabel}</p>
@@ -331,7 +308,7 @@ export function TopMonthCard({ entries = [] }) {
 }
 
 // ── Lowest day finder ─────────────────────────────────────────────────
-function findLowestDay(entries) {
+export function findLowestDay(entries) {
   const dayMap = groupEntriesByDay(entries)
   const distressedDays = Object.entries(dayMap)
     .filter(([, d]) => d.quadrant === "Q2")
@@ -343,7 +320,7 @@ function findLowestDay(entries) {
 }
 
 // ── Lowest week finder ────────────────────────────────────────────────
-function findLowestWeek(entries) {
+export function findLowestWeek(entries) {
   const dayMap = groupEntriesByDay(entries)
   const weekMap = {}
 
@@ -370,7 +347,7 @@ function findLowestWeek(entries) {
 }
 
 // ── Lowest month finder ───────────────────────────────────────────────
-function findLowestMonth(entries) {
+export function findLowestMonth(entries) {
   const dayMap = groupEntriesByDay(entries)
   const monthMap = {}
 
@@ -396,13 +373,6 @@ export function LowestDayCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Lowest Day</h2>
-        <p className="mt-0.5 text-sm text-gray-500">
-          Most distressed day, all time · by PA − NA score.
-        </p>
-      </div>
-
       {!lowestDay ? (
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No distressed days on record.</p>
@@ -473,10 +443,6 @@ export function LowestWeekCard({ entries = [] }) {
   if (!lowestWeek) {
     return (
       <section>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Lowest week</h2>
-          <p className="mt-0.5 text-sm text-gray-500">Most difficult 7-day window, all time · Sun – Sat calendar weeks.</p>
-        </div>
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No data yet.</p>
           <p className="mt-1 text-sm text-gray-400">Keep logging — your patterns will appear here.</p>
@@ -492,10 +458,6 @@ export function LowestWeekCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Lowest week</h2>
-        <p className="mt-0.5 text-sm text-gray-500">Most difficult 7-day window, all time · {rangeLabel}</p>
-      </div>
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
         <div className="mb-1 grid grid-cols-7 gap-1">
           {DAY_LABELS.map(d => (
@@ -520,10 +482,6 @@ export function LowestMonthCard({ entries = [] }) {
   if (!lowestMonth) {
     return (
       <section>
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Lowest month</h2>
-          <p className="mt-0.5 text-sm text-gray-500">Most difficult calendar month, all time.</p>
-        </div>
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6">
           <p className="text-sm font-medium text-gray-600">No data yet.</p>
           <p className="mt-1 text-sm text-gray-400">Keep logging — your patterns will appear here.</p>
@@ -541,10 +499,6 @@ export function LowestMonthCard({ entries = [] }) {
 
   return (
     <section>
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-900">Lowest month</h2>
-        <p className="mt-0.5 text-sm text-gray-500">Most difficult calendar month, all time · {monthLabel}</p>
-      </div>
       <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
         <div className="mb-4">
           <p className="text-sm font-medium text-gray-700">{monthLabel}</p>

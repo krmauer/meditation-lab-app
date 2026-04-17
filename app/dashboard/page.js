@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 import HeatmapCalendar from "../../components/HeatmapCalendar"
-import TopDayCard, { TopWeekCard, TopMonthCard, LowestDayCard, LowestWeekCard, LowestMonthCard } from "../../components/TopDayCard"
+import SummaryAccordion from "../../components/SummaryAccordion"
 import QuadrantModal from "../../components/QuadrantModal"
 import DayDetailPanel from "../../components/DayDetailPanel"
 
@@ -175,15 +175,7 @@ export default function DashboardPage() {
               />
             )}
             {activeTab === "top" && (
-              <div className="space-y-10">
-                <TopDayCard entries={entries} />
-                <TopWeekCard entries={entries} />
-                <TopMonthCard entries={entries} />
-                <div className="border-t border-gray-200" />
-                <LowestDayCard entries={entries} />
-                <LowestWeekCard entries={entries} />
-                <LowestMonthCard entries={entries} />
-              </div>
+              <SummaryAccordion entries={entries} />
             )}
           </div>
 
