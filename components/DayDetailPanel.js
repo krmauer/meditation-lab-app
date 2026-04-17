@@ -2,6 +2,7 @@
 
 import { Q_CONFIG } from "../lib/quadrantConfig"
 import { classifyDay } from "../lib/strandClassifier"
+import ScoreRow from "./shared/ScoreRow"
 
 const QUADRANT_PHRASES = {
   Q1: "High energy and low friction.",
@@ -26,14 +27,6 @@ const NEGATIVE_ITEMS = [
   { key: "upset",    label: "Upset" },
 ]
 
-const SCALE_LABELS = {
-  1: "Slightly / None",
-  2: "A little",
-  3: "Moderately",
-  4: "Quite a bit",
-  5: "Extremely",
-}
-
 const TIMEFRAME_LABELS = {
   right_now:     "Right now",
   today:         "Today",
@@ -50,28 +43,6 @@ function formatDateKey(dateKey) {
     day: "numeric",
     year: "numeric",
   })
-}
-
-function ScoreRow({ label, value, color }) {
-  return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm text-gray-700 w-28">{label}</span>
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <div
-              key={n}
-              className="h-3 w-3 rounded-full"
-              style={{
-                background: n <= value ? color : "#E5E7EB",
-              }}
-            />
-          ))}
-        </div>
-        <span className="text-xs text-gray-400 w-28">{SCALE_LABELS[value]}</span>
-      </div>
-    </div>
-  )
 }
 
 export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
@@ -102,7 +73,6 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
       style={{ background: "rgba(0,0,0,0.4)" }}
       onClick={onClose}
     >
-      {/* Panel */}
       <div
         className="relative w-full max-w-2xl rounded-xl bg-white shadow-xl mb-12 flex flex-col"
         style={{
@@ -111,7 +81,6 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div
           className="flex items-start justify-between rounded-t-xl px-5 py-4"
           style={{
@@ -150,7 +119,6 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
           </button>
         </div>
 
-        {/* Body */}
         <div className="px-5 py-4 space-y-6 overflow-y-auto flex-1">
           {dayEntries.length === 0 ? (
             <p className="text-sm text-gray-500">No entries found for this day.</p>
@@ -162,45 +130,31 @@ export default function DayDetailPanel({ dateKey, entries = [], onClose }) {
                     Entry {i + 1} · {new Date(entry.created_at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                   </p>
                 )}
-
                 {entry.timeframe && (
                   <p className="mb-3 text-sm text-gray-500">
                     Timeframe: <span className="font-medium text-gray-700">{TIMEFRAME_LABELS[entry.timeframe] ?? entry.timeframe}</span>
                   </p>
                 )}
-
                 <div className="grid gap-x-6 sm:grid-cols-2">
                   <div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Positive</p>
                     {POSITIVE_ITEMS.map((item) => (
-                      <ScoreRow
-                        key={item.key}
-                        label={item.label}
-                        value={entry[item.key] ?? 1}
-                        color="#16a34a"
-                      />
+                      <ScoreRow key={item.key} label={item.label} value={entry[item.key] ?? 1} color="#16a34a" />
                     ))}
                   </div>
                   <div className="mt-4 sm:mt-0">
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Negative</p>
                     {NEGATIVE_ITEMS.map((item) => (
-                      <ScoreRow
-                        key={item.key}
-                        label={item.label}
-                        value={entry[item.key] ?? 1}
-                        color="#dc2626"
-                      />
+                      <ScoreRow key={item.key} label={item.label} value={entry[item.key] ?? 1} color="#dc2626" />
                     ))}
                   </div>
                 </div>
-
                 {entry.notes && (
                   <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
                     <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">Notes</p>
                     <p className="text-sm text-gray-700">{entry.notes}</p>
                   </div>
                 )}
-
                 {i < dayEntries.length - 1 && (
                   <div className="mt-6 border-t border-gray-200" />
                 )}

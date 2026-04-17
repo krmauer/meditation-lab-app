@@ -1,102 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { classifyDay, getStrandProfile } from "../lib/strandClassifier"
+import { getStrandProfile } from "../lib/strandClassifier"
 import { Q_CONFIG } from "../lib/quadrantConfig"
-
-// ── Day aggregation ───────────────────────────────────────────────────
-function groupEntriesByDay(entries) {
-  const dayMap = {}
-  for (const entry of entries) {
-    if (entry.positive_avg == null || entry.negative_avg == null) continue
-    const date = new Date(entry.created_at)
-    const key = [
-      date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-")
-    if (!dayMap[key]) {
-      dayMap[key] = { positiveSum: 0, negativeSum: 0, count: 0 }
-    }
-    dayMap[key].positiveSum += entry.positive_avg
-    dayMap[key].negativeSum += entry.negative_avg
-    dayMap[key].count += 1
-  }
-  const result = {}
-  for (const [key, { positiveSum, negativeSum, count }] of Object.entries(dayMap)) {
-    result[key] = {
-      pa: Math.round((positiveSum / count) * 10) / 10,
-      na: Math.round((negativeSum / count) * 10) / 10,
-    }
-  }
-  return result
-}
-
-// ── Calendar grid builder ─────────────────────────────────────────────
-function buildCalendarMonth(year, month, dayMap) {
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const firstDayOfWeek = new Date(year, month, 1).getDay()
-  const weeks = []
-  let currentWeek = []
-  for (let i = 0; i < firstDayOfWeek; i++) currentWeek.push(null)
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateKey = [
-      year,
-      String(month + 1).padStart(2, "0"),
-      String(day).padStart(2, "0"),
-    ].join("-")
-    const data = dayMap[dateKey] || null
-    const quadrant = data ? classifyDay(data.pa, data.na) : null
-    currentWeek.push({ dateKey, dayNumber: day, pa: data?.pa ?? null, na: data?.na ?? null, quadrant })
-    if (currentWeek.length === 7) { weeks.push(currentWeek); currentWeek = [] }
-  }
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push(null)
-    weeks.push(currentWeek)
-  }
-  return weeks
-}
-
-// ── Day cell ──────────────────────────────────────────────────────────
-function DayCell({ slot, onDayClick }) {
-  const [hovered, setHovered] = useState(false)
-  if (!slot) return <div className="aspect-square" />
-  const { dayNumber, quadrant, pa, na, dateKey } = slot
-  const hasData = quadrant !== null
-  const config = hasData ? Q_CONFIG[quadrant] : null
-  return (
-    <div
-      className="relative aspect-square"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div
-        className={`flex h-full w-full items-center justify-center rounded-sm text-xl font-semibold transition-opacity ${hasData ? "cursor-pointer hover:opacity-80" : "cursor-default"}`}
-        style={{
-          background: hasData ? config.color : "#E5E5E3",
-          color: hasData ? "#fff" : "#9CA3AF",
-          opacity: hasData ? 1 : 0.5,
-        }}
-        onClick={() => hasData && onDayClick(dateKey)}
-      >
-        {dayNumber}
-      </div>
-      {hovered && hasData && (
-        <div
-          className="absolute bottom-full left-1/2 z-10 mb-1.5 w-36 -translate-x-1/2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs shadow-md"
-          style={{ borderTop: `3px solid ${config.color}` }}
-        >
-          <p className="font-semibold" style={{ color: config.text }}>{config.label}</p>
-          <p className="mt-0.5 text-gray-400">{dateKey}</p>
-          <div className="mt-1.5 space-y-0.5 text-gray-600">
-            <p>PA avg: <span className="font-medium text-gray-800">{pa}</span></p>
-            <p>NA avg: <span className="font-medium text-gray-800">{na}</span></p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+import { groupEntriesByDay, buildCalendarMonth } from "../lib/calendarUtils"
+import DayCell from "./shared/DayCell"
 
 // ── Stacked bar ───────────────────────────────────────────────────────
 function StackedBar({ pcts, onQuadrantClick }) {
@@ -188,21 +95,17 @@ export default function HeatmapCalendar({
 
   const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-  // Affective profile for the displayed month
   const profileResult = getStrandProfile(filteredEntries)
   const notEnoughData = profileResult.error === "not_enough_data"
-  const { pcts, n } = notEnoughData
-    ? { pcts: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 }, n: 0 }
+  const { pcts } = notEnoughData
+    ? { pcts: { Q1: 0, Q2: 0, Q3: 0, Q4: 0 } }
     : profileResult
 
   return (
     <section>
-
-      {/* Affective profile bar — summary of this month */}
       <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-400">Summary</h3>
       <div className="mb-6">
-        <div className="mb-2 flex items-baseline justify-between">
-        </div>
+        <div className="mb-2 flex items-baseline justify-between" />
         {notEnoughData ? (
           <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm text-gray-500">
             At least 7 entries are needed to generate an affective profile.
@@ -212,10 +115,8 @@ export default function HeatmapCalendar({
         )}
       </div>
 
-      {/* Daily entries subheader */}
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400">Daily Entries</h3>
 
-      {/* Day-of-week column headers */}
       <div className="mb-1 grid grid-cols-7 gap-1">
         {DAY_LABELS.map(d => (
           <div key={d} className="text-center text-[10px] font-medium uppercase tracking-wide text-gray-400">
@@ -224,7 +125,6 @@ export default function HeatmapCalendar({
         ))}
       </div>
 
-      {/* Calendar grid */}
       <div className="space-y-1">
         {weeks.map((week, wi) => (
           <div key={wi} className="grid grid-cols-7 gap-1">
