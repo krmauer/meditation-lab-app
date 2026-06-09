@@ -7,6 +7,7 @@ import HeatmapCalendar from "../../components/HeatmapCalendar"
 import SummaryAccordion from "../../components/SummaryAccordion"
 import QuadrantModal from "../../components/QuadrantModal"
 import DayDetailPanel from "../../components/DayDetailPanel"
+import NavBar from "../../components/NavBar"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -43,6 +44,11 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (hash === "calendar" || hash === "top") setActiveTab(hash)
+  }, [])
+
+  useEffect(() => {
     async function checkUser() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push("/login"); return }
@@ -51,11 +57,6 @@ export default function DashboardPage() {
     }
     checkUser()
   }, [router, loadEntries])
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push("/login")
-  }
 
   const filteredEntries = entries.filter(entry => {
     const d = new Date(entry.created_at)
@@ -70,11 +71,6 @@ export default function DashboardPage() {
   const monthLabel = new Date(calendarYear, calendarMonth, 1)
     .toLocaleDateString("en-US", { month: "long", year: "numeric" })
 
-  const tabs = [
-    { id: "calendar", label: "Review" },
-    { id: "top",      label: "Summary" },
-  ]
-
   return (
     <main className="min-h-screen bg-gray-50">
       <QuadrantModal
@@ -88,44 +84,7 @@ export default function DashboardPage() {
         <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
 
           {/* Zone 1: Toolbar — grey background */}
-          <div className="flex items-center gap-3 bg-gray-100 px-5 py-3">
-            <h1 className="text-lg font-semibold text-gray-900">Mood Dashboard</h1>
-            <div className="flex-1" />
-            <div className="flex gap-1">
-              {tabs.map(tab => {
-                const isActive = activeTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={[
-                      "rounded-md px-4 py-1.5 text-sm font-medium transition-colors",
-                      isActive
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-500 hover:bg-gray-200 hover:text-gray-700",
-                    ].join(" ")}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex-1" />
-            <div className="flex gap-2">
-              <button
-                onClick={() => router.push("/new-entry")}
-                className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
-              >
-                New Entry
-              </button>
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
-              >
-                Log out
-              </button>
-            </div>
-          </div>
+          <NavBar activeTab={activeTab} onTabChange={setActiveTab} />
 
           {/* Divider */}
           <div className="border-t border-gray-200" />
