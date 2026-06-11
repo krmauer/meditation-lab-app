@@ -7,6 +7,7 @@ const tabs = [
   { id: "calendar", label: "Review" },
   { id: "top",      label: "Summary" },
   { id: "days",     label: "Days" },
+  { id: "objects",  label: "Objects" },
 ]
 
 export default function NavBar({ activeTab, onTabChange }) {
@@ -20,6 +21,8 @@ export default function NavBar({ activeTab, onTabChange }) {
   function handleTabClick(id) {
     if (id === "days") {
       router.push("/explore/days")
+    } else if (id === "objects") {
+      router.push("/explore/objects")
     } else if (onTabChange) {
       onTabChange(id)
     } else {
