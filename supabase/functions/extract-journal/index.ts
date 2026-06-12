@@ -107,6 +107,12 @@ Deno.serve(async (req) => {
 
     const claudeData = await claudeRes.json();
 
+    console.log("cache stats:", {
+      cache_creation: claudeData.usage?.cache_creation_input_tokens,
+      cache_read: claudeData.usage?.cache_read_input_tokens,
+      input: claudeData.usage?.input_tokens,
+    });
+
     // Find the tool_use block and read its .input — clean, schema-shaped JSON.
     const toolBlock = claudeData.content?.find(
       (b: { type: string; name?: string }) =>
