@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase"
 import { relateEntity } from "@/lib/relateEntity"
 import { RelatedList } from "@/components/explore/RelatedList"
 import NavBar from "@/components/NavBar"
+import { useAccess } from "@/components/AccessProvider"
 
 const META = {
   people:   { label: "Person",  icon: <User size={18} /> },
@@ -17,8 +18,14 @@ const META = {
 export default function EntityDetailPage() {
   const router = useRouter()
   const { dimension, id } = useParams()
+  const { loading: accessLoading, isAdvanced } = useAccess()
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (accessLoading) return
+    if (!isAdvanced) router.replace("/dashboard")
+  }, [accessLoading, isAdvanced, router])
 
   const load = useCallback(async () => {
     setLoading(true)

@@ -7,6 +7,7 @@ import { supabase } from "../../../lib/supabase"
 import { aggregateObjects } from "../../../lib/aggregateObjects"
 import { DimensionList } from "../../../components/explore/DimensionList"
 import NavBar from "../../../components/NavBar"
+import { useAccess } from "../../../components/AccessProvider"
 
 function valenceDot(item) {
   if (item.valence <= -1) return "#dc2626"
@@ -16,8 +17,14 @@ function valenceDot(item) {
 
 export default function ObjectsPage() {
   const router = useRouter()
+  const { loading: accessLoading, isAdvanced } = useAccess()
   const [objects, setObjects] = useState({ people: [], actions: [], emotions: [] })
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (accessLoading) return
+    if (!isAdvanced) router.replace("/dashboard")
+  }, [accessLoading, isAdvanced, router])
 
   const loadObjects = useCallback(async () => {
     setLoading(true)

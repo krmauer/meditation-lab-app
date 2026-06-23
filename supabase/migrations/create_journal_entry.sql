@@ -63,6 +63,10 @@ begin
     raise exception 'create_journal_entry: no authenticated user';
   end if;
 
+  if not public.has_advanced_access() then
+    raise exception 'create_journal_entry: advanced access required';
+  end if;
+
   if p_text is null or btrim(p_text) = '' then
     raise exception 'create_journal_entry: text is required';
   end if;

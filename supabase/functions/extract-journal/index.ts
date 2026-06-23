@@ -22,7 +22,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 // --- CORS: lets your browser app call this function. ---
 const cors = {
   "Access-Control-Allow-Origin": "*", // tighten to your domain in production
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, content-type, x-client-info, apikey",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 

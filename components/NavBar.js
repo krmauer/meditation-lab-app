@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
+import NewEntryMenu from "./NewEntryMenu"
+import { useAccess } from "./AccessProvider"
 
 const tabs = [
   { id: "calendar", label: "Review" },
@@ -12,6 +14,7 @@ const tabs = [
 
 export default function NavBar({ activeTab, onTabChange }) {
   const router = useRouter()
+  const { isAdvanced } = useAccess()
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -30,12 +33,16 @@ export default function NavBar({ activeTab, onTabChange }) {
     }
   }
 
+  const visibleTabs = tabs.filter(
+    (tab) => isAdvanced || (tab.id !== "days" && tab.id !== "objects")
+  )
+
   return (
     <div className="flex items-center gap-3 bg-gray-100 px-5 py-3">
       <h1 className="text-lg font-semibold text-gray-900">Mood Dashboard</h1>
       <div className="flex-1" />
       <div className="flex gap-1">
-        {tabs.map(tab => {
+        {visibleTabs.map(tab => {
           const isActive = activeTab === tab.id
           return (
             <button
@@ -55,12 +62,7 @@ export default function NavBar({ activeTab, onTabChange }) {
       </div>
       <div className="flex-1" />
       <div className="flex gap-2">
-        <button
-          onClick={() => router.push("/new-entry")}
-          className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
-        >
-          New Entry
-        </button>
+        <NewEntryMenu />
         <button
           onClick={handleLogout}
           className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"

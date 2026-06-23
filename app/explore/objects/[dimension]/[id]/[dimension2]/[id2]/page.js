@@ -17,6 +17,7 @@ import { mergeDays } from "@/lib/mergeDays"
 import { filterEntriesByPair } from "@/lib/entryMatch"
 import { DayCard } from "@/components/explore/DayCard"
 import NavBar from "@/components/NavBar"
+import { useAccess } from "@/components/AccessProvider"
 
 // A dimension name maps directly to its lookup table for the title query.
 const TABLE_FOR = { people: "people", actions: "actions", emotions: "emotions" }
@@ -34,10 +35,16 @@ function toDateKey(iso) {
 export default function IntersectionPage() {
   const router = useRouter()
   const { dimension, id, dimension2, id2 } = useParams()
+  const { loading: accessLoading, isAdvanced } = useAccess()
 
   const [days, setDays] = useState([])
   const [names, setNames] = useState({ a: "", b: "" })
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (accessLoading) return
+    if (!isAdvanced) router.replace("/dashboard")
+  }, [accessLoading, isAdvanced, router])
 
   const load = useCallback(async () => {
     setLoading(true)

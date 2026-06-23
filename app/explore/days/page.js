@@ -6,11 +6,18 @@ import { supabase } from "../../../lib/supabase"
 import { mergeDays } from "../../../lib/mergeDays"
 import { DayCard } from "../../../components/explore/DayCard"
 import NavBar from "../../../components/NavBar"
+import { useAccess } from "../../../components/AccessProvider"
 
 export default function DaysPage() {
   const router = useRouter()
+  const { loading: accessLoading, isAdvanced } = useAccess()
   const [days, setDays] = useState([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (accessLoading) return
+    if (!isAdvanced) router.replace("/dashboard")
+  }, [accessLoading, isAdvanced, router])
 
   const loadDays = useCallback(async () => {
     setLoading(true)
