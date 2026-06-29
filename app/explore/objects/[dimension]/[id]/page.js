@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { User, Activity, Heart, ArrowLeft } from "lucide-react"
+import { User, Activity, Heart, Lightbulb, ArrowLeft } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { relateEntity } from "@/lib/relateEntity"
 import { RelatedList } from "@/components/explore/RelatedList"
@@ -13,6 +13,7 @@ const META = {
   people:   { label: "Person",  icon: <User size={18} /> },
   actions:  { label: "Action",  icon: <Activity size={18} /> },
   emotions: { label: "Emotion", icon: <Heart size={18} /> },
+  topics:   { label: "Topic",   icon: <Lightbulb size={18} /> },
 }
 
 export default function EntityDetailPage() {
@@ -36,7 +37,8 @@ export default function EntityDetailPage() {
         entry_people   ( person:people ( id, name ) ),
         entry_actions  ( action:actions ( id, name ) ),
         entry_emotions ( emotion:emotions ( id, name, valence ),
-                         target:people!target_person_id ( id, name ) )
+                         target:people!target_person_id ( id, name ) ),
+        entry_topics   ( topic:topics ( id, name ) )
       `)
       .eq("kind", "journal")
     if (error) console.error("Entity detail error:", error?.message, error?.details)
@@ -54,7 +56,7 @@ export default function EntityDetailPage() {
   }, [router, load])
 
   const meta = META[dimension]
-  const dims = ["people", "actions", "emotions"].filter((d) => d !== dimension)
+  const dims = ["people", "actions", "emotions", "topics"].filter((d) => d !== dimension)
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -89,17 +91,20 @@ export default function EntityDetailPage() {
                   </p>
                 </header>
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  <RelatedList
-                    dimension={dims[0]}
-                    items={result.related[dims[0]]}
-                    directed={dimension === "emotions" && dims[0] === "people" ? result.directed : null}
-                  />
-                  <RelatedList
-                    dimension={dims[1]}
-                    items={result.related[dims[1]]}
-                    directed={dimension === "people" && dims[1] === "emotions" ? result.directed : null}
-                  />
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+                  {dims.map((d) => (
+                    <RelatedList
+                      key={d}
+                      dimension={d}
+                      items={result.related[d]}
+                      directed={
+                        (dimension === "emotions" && d === "people") ||
+                        (dimension === "people" && d === "emotions")
+                          ? result.directed
+                          : null
+                      }
+                    />
+                  ))}
                 </div>
               </>
             )}

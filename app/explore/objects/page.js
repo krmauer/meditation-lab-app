@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { User, Activity, Heart } from "lucide-react"
+import { User, Activity, Heart, Lightbulb } from "lucide-react"
 import { supabase } from "../../../lib/supabase"
 import { aggregateObjects } from "../../../lib/aggregateObjects"
 import { DimensionList } from "../../../components/explore/DimensionList"
@@ -18,7 +18,7 @@ function valenceDot(item) {
 export default function ObjectsPage() {
   const router = useRouter()
   const { loading: accessLoading, isAdvanced } = useAccess()
-  const [objects, setObjects] = useState({ people: [], actions: [], emotions: [] })
+  const [objects, setObjects] = useState({ people: [], actions: [], emotions: [], topics: [] })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -33,7 +33,8 @@ export default function ObjectsPage() {
       .select(`
         entry_people   ( person:people ( id, name ) ),
         entry_actions  ( action:actions ( id, name ) ),
-        entry_emotions ( emotion:emotions ( id, name, valence ) )
+        entry_emotions ( emotion:emotions ( id, name, valence ) ),
+        entry_topics   ( topic:topics ( id, name ) )
       `)
       .eq("kind", "journal")
 
@@ -70,10 +71,11 @@ export default function ObjectsPage() {
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                <DimensionList title="People"   dimension="people"   icon={<User size={16} />}     items={objects.people} />
-                <DimensionList title="Actions"  dimension="actions"  icon={<Activity size={16} />} items={objects.actions} />
-                <DimensionList title="Emotions" dimension="emotions" icon={<Heart size={16} />}    items={objects.emotions} dotColor={valenceDot} />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <DimensionList title="People"   dimension="people"   icon={<User size={16} />}      items={objects.people} />
+                <DimensionList title="Actions"  dimension="actions"  icon={<Activity size={16} />}  items={objects.actions} />
+                <DimensionList title="Emotions" dimension="emotions" icon={<Heart size={16} />}     items={objects.emotions} dotColor={valenceDot} />
+                <DimensionList title="Topics"   dimension="topics"   icon={<Lightbulb size={16} />} items={objects.topics} />
               </div>
             )}
           </div>

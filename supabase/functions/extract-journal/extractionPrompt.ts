@@ -1,14 +1,14 @@
 // extractionPrompt.ts
 //
 // The "brain" of the extraction step: the instructions and the output contract
-// that turn freeform journal text into structured people / actions / emotions.
+// that turn freeform journal text into structured people / actions / emotions / topics.
 //
 // ⚠️ VERSIONED ARTIFACT. Every entry records which version processed it
 // (journal_entries.prompt_version). If you change the rules, examples, or
 // schema below, BUMP EXTRACTION_PROMPT_VERSION so you can tell old extractions
 // from new ones. Treat edits like code changes, not tweaks.
 
-export const EXTRACTION_PROMPT_VERSION = "v1.0";
+export const EXTRACTION_PROMPT_VERSION = "v1.1";
 
 // ---------------------------------------------------------------------
 // THE OUTPUT CONTRACT (the "tool")
@@ -19,7 +19,7 @@ export const EXTRACTION_PROMPT_VERSION = "v1.0";
 export const EXTRACTION_TOOL = {
   name: "save_extracted_entities",
   description:
-    "Record the structured people, actions, and emotions found in one journal entry.",
+    "Record the structured people, actions, emotions, and topics found in one journal entry.",
   input_schema: {
     type: "object",
     properties: {
@@ -84,8 +84,24 @@ export const EXTRACTION_TOOL = {
           required: ["name", "valence", "toward_person"],
         },
       },
+      topics: {
+        type: "array",
+        description:
+          "Subjects the writer's attention was on — what they were thinking/preoccupied about, as opposed to what happened.",
+        items: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description:
+                "Short lowercase noun phrase naming the live preoccupation, e.g. 'the job decision', \"mom's health\", 'money'.",
+            },
+          },
+          required: ["name"],
+        },
+      },
     },
-    required: ["summary", "people", "actions", "emotions"],
+    required: ["summary", "people", "actions", "emotions", "topics"],
   },
 };
 
@@ -118,12 +134,26 @@ EMOTIONS — feelings the writer expressed.
   - valence: a number from -1.0 (very negative) to 1.0 (very positive).
   - toward_person: if the feeling is clearly aimed at one named person, give that exact name; otherwise null.
 
+TOPICS — the subjects occupying the writer's attention (what their mind was on).
+  - A topic is something THOUGHT ABOUT, not something that happened. If it occurred
+    in the world, it is an ACTION, not a topic. ("argued with Jim" = action;
+    "couldn't stop replaying the argument" = topic.)
+  - Prefer the LIVE PREOCCUPATION: the specific ongoing situation the writer is
+    turning over — "the job decision", "mom's health", "the kitchen renovation".
+    Fall back to a broad life domain ("money", "career", "health") ONLY when no
+    specific preoccupation is present. Avoid one-off instances that will never
+    recur ("the $400 vet bill") — name the durable subject instead.
+  - A NAMED person who is merely thought about stays a PERSON with role
+    "mentioned" — never a topic. Topics are for NON-PERSON subjects.
+  - Reuse known topics exactly, same as the other dimensions (see "Known entities").
+  - Short lowercase noun phrase. Omit if nothing is clearly a subject of thought.
+
 # Decision rules
 
-1. Extract only what the text supports. Never add people, actions, or emotions that aren't there.
+1. Extract only what the text supports. Never add people, actions, emotions, or topics that aren't there.
 2. No name, no person. Pronoun-only references are dropped.
 3. REUSE known entities. If something in the entry matches, or is a clear variant of, a name in the "Known entities" list, output the EXISTING spelling exactly (e.g. entry says "Mike", known list has "Michael" → output "Michael"). This keeps one real person from splitting into several records.
-4. Keep names canonical: people in Title Case, actions and emotions lowercase.
+4. Keep names canonical: people in Title Case, actions, emotions, and topics lowercase.
 5. Always produce a one-sentence summary, even for thin entries.
 
 # Examples
@@ -136,7 +166,8 @@ Entry: "Frustrating walk with Jim this morning. He kept bringing up the thing fr
   "emotions": [
     { "name": "frustrated", "valence": -0.7, "toward_person": "Jim" },
     { "name": "anxious", "valence": -0.5, "toward_person": null }
-  ]
+  ],
+  "topics": []
 }
 
 Entry: "meh."
@@ -144,7 +175,8 @@ Entry: "meh."
   "summary": "Brief entry with no specific content.",
   "people": [],
   "actions": [],
-  "emotions": []
+  "emotions": [],
+  "topics": []
 }
 
 Entry: "Cooked dinner alone tonight, felt unexpectedly peaceful. Music on, no rush."
@@ -152,7 +184,8 @@ Entry: "Cooked dinner alone tonight, felt unexpectedly peaceful. Music on, no ru
   "summary": "Peaceful solo cooking evening.",
   "people": [],
   "actions": [{ "name": "cook dinner" }],
-  "emotions": [{ "name": "peaceful", "valence": 0.6, "toward_person": null }]
+  "emotions": [{ "name": "peaceful", "valence": 0.6, "toward_person": null }],
+  "topics": []
 }
 
 Entry: "She was being weird again. I don't know what to do. Felt drained after."
@@ -160,9 +193,42 @@ Entry: "She was being weird again. I don't know what to do. Felt drained after."
   "summary": "Unsettling interaction with an unnamed person; left feeling drained.",
   "people": [],
   "actions": [],
-  "emotions": [{ "name": "drained", "valence": -0.5, "toward_person": null }]
+  "emotions": [{ "name": "drained", "valence": -0.5, "toward_person": null }],
+  "topics": []
 }
-(Note: "she" has no name, so no person is created — even though someone is clearly involved.)`;
+(Note: "she" has no name, so no person is created — even though someone is clearly involved.)
+
+Entry: "Spent the afternoon turning over the offer from the startup. Better title, but it's a pay cut and the commute scares me. Couldn't focus on anything else."
+→ {
+  "summary": "Preoccupied all afternoon with a startup job offer; torn over pay and commute.",
+  "people": [],
+  "actions": [],
+  "emotions": [{ "name": "anxious", "valence": -0.5, "toward_person": null }],
+  "topics": [{ "name": "the job decision" }]
+}
+
+Entry: "Walked alone again. Mom's scan results come back Thursday and I can't stop running every version of that conversation. Chest tight all evening."
+→ {
+  "summary": "Solo walk overshadowed by anxiety about mom's upcoming scan results.",
+  "people": [],
+  "actions": [{ "name": "walk" }],
+  "emotions": [{ "name": "anxious", "valence": -0.6, "toward_person": null }],
+  "topics": [{ "name": "mom's health" }]
+}
+(Note: "Mom" is a relationship word, not a given name, so under the no-name rule she
+is NOT a person — "mom's health" as a topic is the only place that subject is captured.)
+
+Entry: "Good day. Made progress on the kitchen reno, though I keep second-guessing whether we can afford to finish it this year. Money's always lurking."
+→ {
+  "summary": "Productive day on the kitchen renovation, shadowed by money worry.",
+  "people": [],
+  "actions": [{ "name": "work on renovation" }],
+  "emotions": [{ "name": "content", "valence": 0.4, "toward_person": null }],
+  "topics": [{ "name": "the kitchen renovation" }, { "name": "money" }]
+}
+(Two topics: one specific live preoccupation + one broad domain named as a background
+worry. Note "work on renovation" is the ACTION that happened; "the kitchen renovation"
+is the SUBJECT being thought about — both are legitimately present.)`;
 
 // ---------------------------------------------------------------------
 // THE DYNAMIC PART
@@ -174,6 +240,7 @@ type EntityList = {
   people: { name: string }[];
   actions: { name: string }[];
   emotions: { name: string }[];
+  topics: { name: string }[];
 };
 
 export function buildEntityContext(existing: EntityList): string {
@@ -183,5 +250,6 @@ export function buildEntityContext(existing: EntityList): string {
   return `# Known entities (reuse these exact names when they match)
 People: ${line(existing.people)}
 Actions: ${line(existing.actions)}
-Emotions: ${line(existing.emotions)}`;
+Emotions: ${line(existing.emotions)}
+Topics: ${line(existing.topics)}`;
 }

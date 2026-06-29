@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { User, Activity, Heart, ChevronDown, ChevronUp, CalendarDays } from "lucide-react"
+import { User, Activity, Heart, Lightbulb, ChevronDown, ChevronUp, CalendarDays } from "lucide-react"
 import { Q_CONFIG } from "../../lib/quadrantConfig"
 import ScoreRow from "../shared/ScoreRow"
 
@@ -68,6 +68,18 @@ function ActionChip({ name }) {
   )
 }
 
+function TopicChip({ name }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium"
+      style={{ background: "#fffbeb", borderColor: "#fde68a", color: "#b45309" }}
+    >
+      <Lightbulb size={12} />
+      {name}
+    </span>
+  )
+}
+
 function EmotionChip({ name, valence, towardPerson }) {
   const s = valenceStyle(valence)
   return (
@@ -110,6 +122,9 @@ function Moment({ moment, showDivider }) {
       </ChipGroup>
       <ChipGroup icon={<Heart size={11} />} label="Emotions">
         {moment.emotions.map((e, i) => <EmotionChip key={i} {...e} />)}
+      </ChipGroup>
+      <ChipGroup icon={<Lightbulb size={11} />} label="Topics">
+        {(moment.topics ?? []).map((t, i) => <TopicChip key={i} {...t} />)}
       </ChipGroup>
     </div>
   )

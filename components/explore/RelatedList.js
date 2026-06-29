@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { User, Activity, Heart } from "lucide-react"
+import { User, Activity, Heart, Lightbulb } from "lucide-react"
 
 const META = {
   people:   { title: "People",   icon: <User size={16} /> },
   actions:  { title: "Actions",  icon: <Activity size={16} /> },
   emotions: { title: "Emotions", icon: <Heart size={16} /> },
+  topics:   { title: "Topics",   icon: <Lightbulb size={16} /> },
 }
 
 function valenceDot(valence) {

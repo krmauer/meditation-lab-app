@@ -31,7 +31,8 @@ export default function DaysPage() {
           entry_people   ( roles, person:people ( name ) ),
           entry_actions  ( action:actions ( name ) ),
           entry_emotions ( emotion:emotions ( name, valence ),
-                           target:people!target_person_id ( name ) )
+                           target:people!target_person_id ( name ) ),
+          entry_topics   ( topic:topics ( name ) )
         `)
         .eq("kind", "journal")
         .order("created_at", { ascending: false }),

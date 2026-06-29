@@ -3,8 +3,8 @@
 --
 -- Writes, in a single transaction:
 --   entries (parent) -> journal_entries (1:1 detail)
---   + find-or-create rows in people / actions / emotions
---   + link rows in entry_people / entry_actions / entry_emotions
+--   + find-or-create rows in people / actions / emotions / topics
+--   + link rows in entry_people / entry_actions / entry_emotions / entry_topics
 --
 -- Call it AS the logged-in user (it reads auth.uid() itself).
 -- =====================================================================
@@ -30,12 +30,20 @@ create unique index if not exists emotions_user_lower_name_uniq
 -- ---------------------------------------------------------------------
 -- 2. THE FUNCTION
 -- ---------------------------------------------------------------------
+
+-- Drop the old 6-arg overload first; CREATE OR REPLACE only replaces an
+-- identical signature and would otherwise leave a stale overload in place.
+drop function if exists public.create_journal_entry(
+  text, text, jsonb, jsonb, jsonb, text
+);
+
 create or replace function public.create_journal_entry(
   p_text           text,
   p_summary        text  default null,
   p_people         jsonb default '[]'::jsonb,   -- [{ "name", "roles":[...] }]
   p_actions        jsonb default '[]'::jsonb,   -- [{ "name" }]
   p_emotions       jsonb default '[]'::jsonb,   -- [{ "name","valence","toward_person" }]
+  p_topics         jsonb default '[]'::jsonb,   -- [{ "name" }]
   p_prompt_version text  default 'v1'
 )
 returns uuid
@@ -50,6 +58,7 @@ declare
   v_person     jsonb;
   v_action     jsonb;
   v_emotion    jsonb;
+  v_topic      jsonb;
   v_name       text;
   v_id         uuid;
   v_roles      text[];
@@ -80,7 +89,7 @@ begin
     (entry_id, user_id, text, summary, extraction_status, extracted_at, prompt_version)
   values
     (v_entry_id, v_user, p_text, nullif(btrim(p_summary), ''),
-     'extracted', now(), p_prompt_version);
+     'complete', now(), p_prompt_version);
 
   -- ---- people ----
   for v_person in
@@ -164,6 +173,27 @@ begin
     on conflict (entry_id, emotion_id) do nothing;  -- one emotion per entry (composite PK)
   end loop;
 
+  -- ---- topics ----
+  for v_topic in
+    select value
+    from jsonb_array_elements(
+      case when jsonb_typeof(p_topics) = 'array' then p_topics else '[]'::jsonb end
+    ) as t(value)
+  loop
+    v_name := btrim(v_topic->>'name');
+    continue when v_name is null or v_name = '';
+
+    insert into public.topics (user_id, name, source, last_seen_at)
+    values (v_user, v_name, c_source, now())
+    on conflict (user_id, (lower(name))) where deleted_at is null
+      do update set last_seen_at = now()
+    returning id into v_id;
+
+    insert into public.entry_topics (entry_id, topic_id, user_id, source)
+    values (v_entry_id, v_id, v_user, c_source)
+    on conflict (entry_id, topic_id) do nothing;
+  end loop;
+
   return v_entry_id;
 end;
 $$;
@@ -173,5 +203,5 @@ $$;
 -- 3. Allow logged-in users to call it.
 -- ---------------------------------------------------------------------
 grant execute on function public.create_journal_entry(
-  text, text, jsonb, jsonb, jsonb, text
+  text, text, jsonb, jsonb, jsonb, jsonb, text
 ) to authenticated;

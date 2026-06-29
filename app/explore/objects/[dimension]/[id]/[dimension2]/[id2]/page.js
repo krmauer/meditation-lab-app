@@ -20,7 +20,7 @@ import NavBar from "@/components/NavBar"
 import { useAccess } from "@/components/AccessProvider"
 
 // A dimension name maps directly to its lookup table for the title query.
-const TABLE_FOR = { people: "people", actions: "actions", emotions: "emotions" }
+const TABLE_FOR = { people: "people", actions: "actions", emotions: "emotions", topics: "topics" }
 
 // "1 entry" / "3 entries", "1 day" / "2 days"
 function plural(n, word) {
@@ -59,7 +59,8 @@ export default function IntersectionPage() {
           entry_people   ( roles, person:people ( id, name ) ),
           entry_actions  ( action:actions ( id, name ) ),
           entry_emotions ( emotion:emotions ( id, name, valence ),
-                           target:people!target_person_id ( id, name ) )
+                           target:people!target_person_id ( id, name ) ),
+          entry_topics   ( topic:topics ( id, name ) )
         `)
         .eq("kind", "journal")
         .order("created_at", { ascending: false }),

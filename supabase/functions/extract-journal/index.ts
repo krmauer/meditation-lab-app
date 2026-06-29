@@ -57,18 +57,21 @@ Deno.serve(async (req) => {
 
     // --- 3. Fetch this user's recent entities so the model reuses existing names. ---
     // (Runs under their JWT, so RLS scopes it to their own records.)
-    const [pp, aa, ee] = await Promise.all([
+    const [pp, aa, ee, tt] = await Promise.all([
       supabase.from("people").select("name").is("deleted_at", null)
         .order("last_seen_at", { ascending: false }).limit(50),
       supabase.from("actions").select("name").is("deleted_at", null)
         .order("last_seen_at", { ascending: false }).limit(50),
       supabase.from("emotions").select("name").is("deleted_at", null)
         .order("last_seen_at", { ascending: false }).limit(50),
+      supabase.from("topics").select("name").is("deleted_at", null)
+        .order("last_seen_at", { ascending: false }).limit(50),
     ]);
     const existing = {
       people: pp.data ?? [],
       actions: aa.data ?? [],
       emotions: ee.data ?? [],
+      topics: tt.data ?? [],
     };
 
     // --- 4. Ask Claude to extract, forcing it to use our schema. ---
@@ -126,6 +129,7 @@ Deno.serve(async (req) => {
       people: { name: string; roles: string[] }[];
       actions: { name: string }[];
       emotions: { name: string; valence: number; toward_person: string | null }[];
+      topics: { name: string }[];
     };
 
     // --- 5. Write everything in one atomic call to create_journal_entry. ---
@@ -137,6 +141,7 @@ Deno.serve(async (req) => {
         p_people: extracted.people,
         p_actions: extracted.actions,
         p_emotions: extracted.emotions,
+        p_topics: extracted.topics,
         p_prompt_version: EXTRACTION_PROMPT_VERSION,
       },
     );
