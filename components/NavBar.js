@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
-import NewEntryMenu from "./NewEntryMenu"
 import { useAccess } from "./AccessProvider"
 
 const tabs = [
@@ -62,7 +61,20 @@ export default function NavBar({ activeTab, onTabChange }) {
       </div>
       <div className="flex-1" />
       <div className="flex gap-2">
-        <NewEntryMenu />
+        <button
+          onClick={() => router.push("/new-entry")}
+          className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+        >
+          New PANAS
+        </button>
+        {isAdvanced && (
+          <button
+            onClick={() => router.push("/new-note")}
+            className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+          >
+            New Note
+          </button>
+        )}
         <button
           onClick={handleLogout}
           className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
